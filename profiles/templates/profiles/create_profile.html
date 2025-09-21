@@ -1,0 +1,42 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Seeker Profile</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h2>Create Your Job Seeker Profile</h2>
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="headline" class="form-label">Headline</label>
+            <input type="text" class="form-control" id="headline" name="headline" placeholder="Professional headline">
+        </div>
+
+        <div class="mb-3">
+            <label for="education" class="form-label">Education</label>
+            <input type="text" class="form-control" id="education" name="education" placeholder="Your degree or school">
+        </div>
+
+        <div class="mb-3">
+            <label for="work_experience" class="form-label">Work Experience</label>
+            <textarea class="form-control" id="work_experience" name="work_experience" rows="4" placeholder="Describe your work experience"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="skills" class="form-label">Skills</label>
+            <textarea class="form-control" id="skills" name="skills" rows="3" placeholder="List your skills"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="links" class="form-label">Links</label>
+            <input type="url" class="form-control" id="links" name="links" placeholder="Portfolio or LinkedIn URL">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Profile</button>
+    </form>
+</div>
+</body>
+</html>
