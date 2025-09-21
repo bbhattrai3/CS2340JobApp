@@ -4,7 +4,12 @@
   <div class="container">
     <div class="row mt-3">
       <div class="col mx-auto mb-3">
-        <h2> my profile </h2>
+        <h2> {{ template_data.profile.user.username }}'s Profile </h2>
+        <h2> Headline: {{ template_data.profile.headline }} </h2>
+        <h2> Education: {{ template_data.profile.education }} </h2>
+        <h2> Work Experience: {{ template_data.profile.work_experience }} </h2>
+        <h2> Skils: {{ template_data.profile.skills }} </h2>
+        <h2> Links: {{ template_data.profile.links }} </h2>
         <hr />
       </div>
     </div>

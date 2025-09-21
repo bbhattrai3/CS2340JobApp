@@ -33,6 +33,11 @@
             </li>
 
             {% if user.is_authenticated %}
+                <!-- 
+                    Later on, might make an if statement so that the profile button only shows up 
+                    when active role is job seeker. Maybe recruiters can have a different button that redirects
+                    to a job page or something.
+                -->
                 <li>
                 <a href="{% url 'profile.index' %}">
                         <center><img src="{% static 'jobapp/images/profileicon.png' %}" alt="Home" width="20"></center>
@@ -47,9 +52,9 @@
                 </li>
 
                 <li>
-                    <a href="{% url 'home.index' %}">
+                    <a href="{% url 'home.switch_roles' %}">
                         <center><img src="{% static 'jobapp/images/switchrole.png' %}" alt="Switch Roles" width="20"></center>
-                        <a href="{% url 'accounts.login' %}"
+                        <a href="{% url 'home.switch_roles' %}"
                             class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent 
                             md:border-0 md:hover:text-blue-700 md:p-0 
                             dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 
@@ -72,7 +77,7 @@
                 </a>
                 <li>
             {% else %}
-                <li>
+                <li>    
                 <a href="{% url 'accounts.login' %}"
                     class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent 
                             md:border-0 md:hover:text-blue-700 md:p-0 

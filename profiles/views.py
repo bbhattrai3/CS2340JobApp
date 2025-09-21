@@ -5,17 +5,16 @@ from django.contrib.auth.decorators import login_required
 from .models import JobSeekerProfile
 
 def index(request):
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and hasattr(request.user, 'jobseekerprofile'):
         user = request.user
-        try:
-            profile = user.jobseekerprofile
-        except:
-            return(redirect("/profile/create_profile"))
-        return(render(request,'profiles/my_profile.html'))
+        template_data = {}
+        template_data['profile'] = user.jobseekerprofile
+        return render(request, 'profiles/my_profile.html', {
+                        'template_data': template_data
+        })
             
-
     else:
-        return(redirect("accounts.login"))
+        return(redirect("profile.create_profile"))
 
 @login_required
 def create_profile(request):
@@ -35,7 +34,10 @@ def create_profile(request):
         jobSeekerProfile.skills = request.POST['skills']
         jobSeekerProfile.links = request.POST['links']
         jobSeekerProfile.save()
-        return redirect('')
+        return redirect('profile.index')
+
+
+        
 
 
 

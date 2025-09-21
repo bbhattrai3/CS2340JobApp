@@ -7,6 +7,6 @@ class User(AbstractUser):
     active_role = models.CharField(
         max_length=10,
         choices=[("recruiter", "Recruiter"), ("seeker", "Seeker")],
-        default="seeker"
+        default='seeker'
     )
 # Create your models here.
