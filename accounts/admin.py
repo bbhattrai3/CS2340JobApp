@@ -7,5 +7,5 @@ User = get_user_model()
 
 @admin.register(User)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'is_recruiter', 'active_role')
+    list_display = ('username', 'active_role')
     
