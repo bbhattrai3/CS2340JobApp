@@ -5,6 +5,8 @@ class JobSeekerProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     headline = models.CharField(max_length=255)
     education = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    projects = models.TextField()
     work_experience = models.TextField()
     skills = models.TextField()
     links = models.URLField(blank=True)

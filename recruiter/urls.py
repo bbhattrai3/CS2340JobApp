@@ -6,4 +6,5 @@ app_name = "recruiter"
 
 urlpatterns = [
     path("post-job/", views.post_job, name="post_job"),
+    path("browse-candidates/", views.browse_candidates, name="browse_candidates"),
 ]
