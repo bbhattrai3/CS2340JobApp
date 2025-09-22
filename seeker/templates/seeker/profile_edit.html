@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="bg-white py-8 antialiased dark:bg-gray-900 md:py-8 rounded-2xl shadow-sm mb-12">
+  <div class="mx-auto max-w-screen-lg px-4 2xl:px-0">
+    <!-- Breadcrumb -->
+    <nav class="mb-4 flex" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+        <li class="inline-flex items-center">
+          <a href="{% url 'home.index' %}" 
+             class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-400 dark:hover:text-white">
+            <svg class="me-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 12 8-8 8 8M6 10.5V19a1 1 0 001 1h3v-3a1 1 0 011-1h2a1 1 0 011 1v3h3a1 1 0 001-1v-8.5" />
+            </svg>
+            Home
+          </a>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <svg class="mx-1 h-4 w-4 text-gray-400 rtl:rotate-180" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7" />
+            </svg>
+            <a href="{% url 'seeker:profile_detail' profile.user.id %}" 
+               class="ms-1 text-sm font-medium text-gray-500 hover:text-primary-600 dark:text-gray-400 md:ms-2">
+              Profile
+            </a>
+          </div>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <svg class="mx-1 h-4 w-4 text-gray-400 rtl:rotate-180" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7" />
+            </svg>
+            <span class="ms-1 text-sm font-medium text-gray-500 dark:text-gray-400 md:ms-2">Edit</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- Profile Header -->
+    <div class="flex items-center space-x-4 mb-6">
+      <img class="h-20 w-20 rounded-full ring-2 ring-primary-500 shadow-md" 
+           src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/helene-engels.png" 
+           alt="Profile avatar" />
+      <div>
+        <h2 class="text-2xl font-bold leading-none text-gray-900 dark:text-white">
+          Edit {{ profile.user.username }}’s Profile
+        </h2>
+        <p class="text-gray-500 dark:text-gray-400">Update your profile details below.</p>
+      </div>
+    </div>
+
+    <!-- Edit Profile Form -->
+    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div>
+          <label for="id_headline" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Headline</label>
+          <input type="text" name="headline" id="id_headline" value="{{ form.headline.value|default_if_none:'' }}"
+                 placeholder="Your headline"
+                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                        focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
+                        dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
+                        dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+        </div>
+
+        <div>
+          <label for="id_education" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Education</label>
+          <input type="text" name="education" id="id_education" value="{{ form.education.value|default_if_none:'' }}"
+                 placeholder="Your education"
+                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                        focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
+                        dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
+                        dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+        </div>
+
+        <div>
+          <label for="id_work_experience" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Work Experience</label>
+          <textarea name="work_experience" id="id_work_experience" rows="4"
+                    placeholder="Tell us about your work experience"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                           focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
+                           dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
+                           dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">{{ form.work_experience.value|default_if_none:'' }}</textarea>
+        </div>
+
+        <div>
+          <label for="id_skills" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Skills</label>
+          <textarea name="skills" id="id_skills" rows="3"
+                    placeholder="List your skills"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                           focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
+                           dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
+                           dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">{{ form.skills.value|default_if_none:'' }}</textarea>
+        </div>
+
+        <div>
+          <label for="id_links" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Links</label>
+          <input type="url" name="links" id="id_links" value="{{ form.links.value|default_if_none:'' }}"
+                 placeholder="https://portfolio.com"
+                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                        focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
+                        dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
+                        dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+        </div>
+
+        <button type="submit" 
+                class="w-full inline-flex justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-md hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+          Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

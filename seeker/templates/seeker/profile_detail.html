@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="bg-white py-8 antialiased dark:bg-gray-900 md:py-8 rounded-2xl">
+  <div class="mx-auto max-w-screen-lg px-4 2xl:px-0">
+    <!-- Breadcrumb -->
+    <nav class="mb-4 flex" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+        <li class="inline-flex items-center">
+          <a href="{% url 'home.index' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-400 dark:hover:text-white">
+            <svg class="me-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 12 8-8 8 8M6 10.5V19a1 1 0 001 1h3v-3a1 1 0 011-1h2a1 1 0 011 1v3h3a1 1 0 001-1v-8.5" />
+            </svg>
+            Home
+          </a>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <svg class="mx-1 h-4 w-4 text-gray-400 rtl:rotate-180" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7" />
+            </svg>
+            <span class="ms-1 text-sm font-medium text-gray-500 dark:text-gray-400 md:ms-2">Profile</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- Profile Header -->
+    <div class="flex items-center space-x-4 mb-6">
+      <img class="h-20 w-20 rounded-full ring-2 ring-primary-500 shadow-md" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/helene-engels.png" alt="Profile avatar" />
+      <div>
+        <h2 class="text-2xl font-bold leading-none text-gray-900 dark:text-white">
+          {{ profile.user.username }}
+        </h2>
+        <p class="text-gray-500 dark:text-gray-400">{{ profile.headline }}</p>
+      </div>
+    </div>
+
+    <!-- Profile Details -->
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Education</h3>
+        <p class="mt-1 text-gray-500 dark:text-gray-400">{{ profile.education }}</p>
+      </div>
+
+      <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Work Experience</h3>
+        <p class="mt-1 text-gray-500 dark:text-gray-400 whitespace-pre-line">{{ profile.work_experience }}</p>
+      </div>
+
+      <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Skills</h3>
+        <p class="mt-1 text-gray-500 dark:text-gray-400 whitespace-pre-line">{{ profile.skills }}</p>
+      </div>
+
+      {% if profile.links %}
+      <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:col-span-2">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Links</h3>
+        <a href="{{ profile.links }}" target="_blank" class="text-primary-600 hover:underline dark:text-blue-200">{{ profile.links }}</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Action Button -->
+    <div class="mt-8">
+      <a href="{% url 'seeker:profile_edit' profile.pk %}" 
+         class="inline-flex items-center rounded-xl bg-primary-700 px-6 py-3 text-sm font-medium text-white shadow-md hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+        <svg class="-ms-0.5 me-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232a2.828 2.828 0 014 4L9 19l-4 1 1-4 9.232-9.232z"/>
+        </svg>
+        Edit Profile
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
