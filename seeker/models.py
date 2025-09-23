@@ -9,7 +9,13 @@ class JobSeekerProfile(models.Model):
     projects = models.TextField()
     work_experience = models.TextField()
     skills = models.TextField()
-    links = models.URLField(blank=True)
 
     def __str__(self):
         return f"{self.user.username}'s profile"
+    
+class Link(models.Model):
+    profile = models.ForeignKey(JobSeekerProfile, on_delete=models.CASCADE, related_name="links")
+    url = models.URLField()
+
+    def __str__(self):
+        return self.url
