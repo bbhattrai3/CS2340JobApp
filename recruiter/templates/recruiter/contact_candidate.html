@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Emailing: {{ profile.user.get_full_name|default:profile.user.username }}</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="mt-2 px-3 py-1 bg-blue-600 text-white rounded">Send Email</button>
+  </form>
+{% endblock %}
