@@ -4,6 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from accounts.decorators import role_required
 from seeker.models import JobSeekerProfile
+from django.core.mail import send_mail
+from django.contrib import messages
+from django.shortcuts import redirect, get_object_or_404
+from .forms import ContactCandidateForm
 
 recruiter_required = role_required("recruiter")
 
@@ -42,3 +46,26 @@ def browse_candidates(request):
     }
     
     return render(request, "recruiter/browse_candidates.html", context)
+
+
+@login_required
+@recruiter_required
+def contact_candidate(request, username):
+    profile = get_object_or_404(JobSeekerProfile, user__username=username)
+    candidate_email = profile.user.email
+    if request.method == 'POST':
+        form = ContactCandidateForm(request.POST)
+        if form.is_valid():
+            subject = form.cleaned_data['subject']
+            message = form.cleaned_data['message']
+            from_email = request.user.email or None
+            try:
+                send_mail(subject, message, from_email, [candidate_email])
+                messages.success(request, 'Email sent to candidate.')
+            except Exception as e:
+                messages.error(request, f'Failed to send email: {e}')
+            return redirect('recruiter:browse_candidates')
+    else:
+        form = ContactCandidateForm()
+
+    return render(request, 'recruiter/contact_candidate.html', {'form': form, 'profile': profile})

@@ -24,35 +24,65 @@
       </ol>
     </nav>
 
-    <!-- Profile Header -->
-    <div class="flex items-center space-x-4 mb-6">
-      <img class="h-20 w-20 rounded-full ring-2 ring-primary-500 shadow-md" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/helene-engels.png" alt="Profile avatar" />
-      <div>
-        <h2 class="text-2xl font-bold leading-none text-gray-900 dark:text-white">
-          {{ profile.user.username }}
-        </h2>
-        <p class="text-gray-500 dark:text-gray-400">{{ profile.headline }}</p>
+    <!-- Profile Header with Action Buttons -->
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center space-x-4">
+        <img class="h-20 w-20 rounded-full ring-2 ring-primary-500 shadow-md" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/helene-engels.png" alt="Profile avatar" />
+        <div>
+          <h2 class="text-2xl font-bold leading-none text-gray-900 dark:text-white">
+            {{ profile.user.username }}
+          </h2>
+          {% if 'headline' in visible_fields %}
+            <p class="text-gray-500 dark:text-gray-400">{{ profile.headline }}</p>
+          {% endif %}
+        </div>
       </div>
+      
+      <!-- Action Buttons - Fixed top right -->
+      {% if user == profile.user %}
+      <div class="flex space-x-3">
+        <a href="{% url 'seeker:profile_edit' username=profile.user.username %}" 
+           class="inline-flex items-center rounded-xl bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-md hover:bg-blue-800 focus:ring-4 focus:ring-primary-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+          <svg class="-ms-0.5 me-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232a2.828 2.828 0 014 4L9 19l-4 1 1-4 9.232-9.232z"/>
+          </svg>
+          Edit Profile
+        </a>
+        <a href="{% url 'seeker:profile_edit_privacy' username=profile.user.username %}" 
+           class="inline-flex items-center rounded-xl bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-md hover:bg-blue-800 focus:ring-4 focus:ring-primary-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+          <svg class="-ms-0.5 me-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232a2.828 2.828 0 014 4L9 19l-4 1 1-4 9.232-9.232z"/>
+          </svg>
+          Edit Profile Privacy
+        </a>
+      </div>
+      {% endif %}
     </div>
 
     <!-- Profile Details -->
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {% if 'education' in visible_fields %}
       <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Education</h3>
         <p class="mt-1 text-gray-500 dark:text-gray-400">{{ profile.education }}</p>
       </div>
+      {% endif %}
 
+      {% if 'work_experience' in visible_fields %}
       <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Work Experience</h3>
         <p class="mt-1 text-gray-500 dark:text-gray-400 whitespace-pre-line">{{ profile.work_experience }}</p>
       </div>
+      {% endif %}
 
+      {% if 'skills' in visible_fields %}
       <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Skills</h3>
         <p class="mt-1 text-gray-500 dark:text-gray-400 whitespace-pre-line">{{ profile.skills }}</p>
       </div>
+      {% endif %}
 
-      {% if profile.links.all %}
+      {% if 'links' in visible_fields and profile.links.all %}
       <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:col-span-2">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Links</h3>
         <ul class="mt-1 space-y-1">
@@ -66,18 +96,11 @@
         </ul>
       </div>
       {% endif %}
-    </div>
 
-    <!-- Action Button -->
-    {% if user.role == 'seeker' %}
-    <div class="mt-8">
-      <a href="{% url 'seeker:profile_edit' profile.pk %}" 
-         class="inline-flex items-center rounded-xl bg-primary-700 px-6 py-3 text-sm font-medium text-white shadow-md hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
-        <svg class="-ms-0.5 me-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232a2.828 2.828 0 014 4L9 19l-4 1 1-4 9.232-9.232z"/>
-        </svg>
-        Edit Profile
-      </a>
+    <!-- Show message if no fields are visible to this user -->
+    {% if visible_fields|length == 0 and user != profile.user %}
+    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800 text-center">
+      <p class="text-gray-500 dark:text-gray-400 italic">This profile has no public information</p>
     </div>
     {% endif %}
   </div>
