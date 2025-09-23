@@ -26,10 +26,10 @@ class JobForm(forms.ModelForm):
         }
 
 class JobSearchForm(forms.Form):
-    title = forms.CharField(required=False, widget=forms.TextInput(attrs={"placeholder": "Job title", "class": "w-full rounded-md border-gray-300"}))
+    title = forms.CharField(required=False, widget=forms.TextInput(attrs={"placeholder": "Job Title", "class": "w-full rounded-md border-gray-300"}))
     skills = forms.CharField(required=False, widget=forms.TextInput(attrs={"placeholder": "Skills (comma separated)", "class": "w-full rounded-md border-gray-300"}))
     location = forms.CharField(required=False, widget=forms.TextInput(attrs={"placeholder": "Location", "class": "w-full rounded-md border-gray-300"}))
-    salary_min = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={"placeholder": "Min Salary", "class": "w-full rounded-md border-gray-300"}))
-    salary_max = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={"placeholder": "Max Salary", "class": "w-full rounded-md border-gray-300"}))
+    salary_min = forms.IntegerField(label="Minimum Salary", required=False, widget=forms.NumberInput(attrs={"placeholder": "Min Salary", "class": "w-full rounded-md border-gray-300"}))
+    salary_max = forms.IntegerField(label="Maximum Salary", required=False, widget=forms.NumberInput(attrs={"placeholder": "Max Salary", "class": "w-full rounded-md border-gray-300"}))
     remote = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={"class": "rounded border-gray-300"}))
-    visa_sponsorship = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={"class": "rounded border-gray-300"}))
+    visa_sponsorship = forms.BooleanField(label="Visa Sponsorship", required=False, widget=forms.CheckboxInput(attrs={"class": "rounded border-gray-300"}))
