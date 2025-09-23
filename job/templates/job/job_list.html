@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load tz %}
+{% block content %}
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">My Job Postings</h1>
+      <a href="{% url 'job:job_post' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">+ Post Job</a>
+    </div>
+
+    {% if jobs %}
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {% for job in jobs %}
+          <!-- Job Card -->
+          <div class="bg-white rounded-lg shadow-md hover:shadow-lg flex flex-col justify-between h-full transition">
+            <!-- Clickable area to open modal -->
+            <div class="p-5 cursor-pointer" data-modal-target="modal-{{ job.pk }}" data-modal-toggle="modal-{{ job.pk }}">
+              <h2 class="text-xl font-semibold text-gray-800 mb-2">{{ job.title }}</h2>
+              <p class="text-gray-600 mb-3 line-clamp-3">{{ job.description|truncatewords:25 }}</p>
+              <p class="text-sm text-gray-500 mb-3">📍 {{ job.location|default:'Remote' }}</p>
+              <p class="text-xs text-gray-400 mb-4">Posted {{ job.created_at|localtime|date:'M d, Y' }}</p>
+            </div>
+
+            <!-- Button wrapper -->
+            <div class="self-start mt-4 mb-5 ml-5">
+              <a href="{% url 'job:job_edit' job.pk %}" class="job-card-edit inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white">Edit</a>
+            </div>
+          </div>
+
+          <!-- Modal -->
+          <div id="modal-{{ job.pk }}" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 w-full md:inset-0 h-modal md:h-full">
+            <div class="relative p-4 w-full max-w-2xl h-full md:h-auto mx-auto mt-24">
+              <!-- Modal content -->
+              <div class="relative bg-white rounded-lg shadow">
+                <!-- Close button -->
+                <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center" data-modal-hide="modal-{{ job.pk }}">✕</button>
+                <!-- Modal body -->
+                <div class="p-6">
+                  <h3 class="text-xl font-semibold mb-3">{{ job.title }}</h3>
+                  <p class="text-gray-700 mb-4">{{ job.description }}</p>
+                  <p class="text-sm text-gray-500 mb-4">📍 {{ job.location|default:'Remote' }}</p>
+                  <p class="text-xs text-gray-400 mb-4">Posted {{ job.created_at|localtime|date:'M d, Y' }}</p>
+
+                  <!-- Edit button inside the modal -->
+                  <a href="{% url 'job:job_edit' job.pk %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Edit Job</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-gray-600">You haven’t posted any jobs yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Flowbite JS -->
+  <script src="https://unpkg.com/flowbite@latest/dist/flowbite.min.js"></script>
+
+  <script>
+    // Optional safety: stop propagation on card Edit buttons
+    document.querySelectorAll('.job-card-edit').forEach((button) => {
+      button.addEventListener('click', function (event) {
+        event.stopPropagation()
+      })
+    })
+  </script>
+{% endblock %}
