@@ -1,31 +1,67 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
-<div class="max-w-3xl mx-auto px-6 py-8 bg-white rounded-lg shadow">
-  <h1 class="text-2xl font-bold mb-6 text-gray-800">Edit Job</h1>
+  <div class="max-w-3xl mx-auto p-6">
+    <div class="bg-white shadow-md rounded-lg p-6">
+      <h1 class="text-2xl font-bold text-gray-800 mb-6">Edit Job</h1>
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
 
-  <form method="post" class="space-y-6">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
+        <!-- Job Title -->
+        <div>
+          <label for="id_title" class="block mb-2 text-sm font-medium text-gray-900">Job Title</label>
+          {{ form.title }}
+        </div>
 
-    <div>
-      <label class="block mb-2 text-sm font-medium text-gray-700">Title</label>
-      {{ form.title }}
+        <!-- Job Description -->
+        <div>
+          <label for="id_description" class="block mb-2 text-sm font-medium text-gray-900">Description</label>
+          {{ form.description }}
+        </div>
+
+        <!-- Location -->
+        <div>
+          <label for="id_location" class="block mb-2 text-sm font-medium text-gray-900">Location</label>
+          {{ form.location }}
+        </div>
+
+        <!-- Salary Range -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="id_salary_min" class="block mb-2 text-sm font-medium text-gray-900">Minimum Salary</label>
+            {{ form.salary_min }}
+          </div>
+          <div>
+            <label for="id_salary_max" class="block mb-2 text-sm font-medium text-gray-900">Maximum Salary</label>
+            {{ form.salary_max }}
+          </div>
+        </div>
+
+        <!-- Remote & Visa -->
+        <div class="flex items-center space-x-6">
+          <div class="flex items-center">
+            {{ form.remote }}
+            <label for="id_remote" class="ml-2 text-sm text-gray-700">Remote</label>
+          </div>
+          <div class="flex items-center">
+            {{ form.visa_sponsorship }}
+            <label for="id_visa_sponsorship" class="ml-2 text-sm text-gray-700">Visa Sponsorship</label>
+          </div>
+        </div>
+
+        <!-- Skills -->
+        <div>
+          <label for="id_skills" class="block mb-2 text-sm font-medium text-gray-900">Skills (comma separated)</label>
+          {{ form.skills }}
+        </div>
+
+        <!-- Submit / Save Changes -->
+        <button type="submit" class="w-full text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Save Changes</button>
+      </form>
+
+      <!-- Delete Button: link to confirmation page -->
+      <a href="{% url 'job:job_delete' job.pk %}" class="w-full block text-center text-white bg-red-600 hover:bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5 mt-2">Delete Job</a>
     </div>
-
-    <div>
-      <label class="block mb-2 text-sm font-medium text-gray-700">Description</label>
-      {{ form.description }}
-    </div>
-
-    <div>
-      <label class="block mb-2 text-sm font-medium text-gray-700">Location</label>
-      {{ form.location }}
-    </div>
-
-    <button type="submit"
-            class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700">
-      Save Edits
-    </button>
-  </form>
-</div>
+  </div>
 {% endblock %}
