@@ -4,22 +4,32 @@ from .models import Job
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ["title", "description", "location", "is_active"]
+        fields = [
+            "title",
+            "description",
+            "location",
+            "remote",
+            "salary_min",
+            "salary_max",
+            "visa_sponsorship",
+            "skills",
+        ]
         widgets = {
-            "title": forms.TextInput(attrs={
-                "class": "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5",
-                "placeholder": "Enter job title"
-            }),
-            "description": forms.Textarea(attrs={
-                "rows": 4,
-                "class": "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5",
-                "placeholder": "Describe the role and responsibilities..."
-            }),
-            "location": forms.TextInput(attrs={
-                "class": "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5",
-                "placeholder": "City, State or Remote"
-            }),
-            "is_active": forms.CheckboxInput(attrs={
-                "class": "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-            }),
+            "description": forms.Textarea(attrs={"rows": 4, "class": "w-full rounded-md border-gray-300"}),
+            "skills": forms.TextInput(attrs={"placeholder": "Python, Django, React", "class": "w-full rounded-md border-gray-300"}),
+            "title": forms.TextInput(attrs={"class": "w-full rounded-md border-gray-300"}),
+            "location": forms.TextInput(attrs={"class": "w-full rounded-md border-gray-300"}),
+            "salary_min": forms.NumberInput(attrs={"class": "w-full rounded-md border-gray-300"}),
+            "salary_max": forms.NumberInput(attrs={"class": "w-full rounded-md border-gray-300"}),
+            "remote": forms.CheckboxInput(attrs={"class": "rounded border-gray-300"}),
+            "visa_sponsorship": forms.CheckboxInput(attrs={"class": "rounded border-gray-300"}),
         }
+
+class JobSearchForm(forms.Form):
+    title = forms.CharField(required=False, widget=forms.TextInput(attrs={"placeholder": "Job title", "class": "w-full rounded-md border-gray-300"}))
+    skills = forms.CharField(required=False, widget=forms.TextInput(attrs={"placeholder": "Skills (comma separated)", "class": "w-full rounded-md border-gray-300"}))
+    location = forms.CharField(required=False, widget=forms.TextInput(attrs={"placeholder": "Location", "class": "w-full rounded-md border-gray-300"}))
+    salary_min = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={"placeholder": "Min Salary", "class": "w-full rounded-md border-gray-300"}))
+    salary_max = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={"placeholder": "Max Salary", "class": "w-full rounded-md border-gray-300"}))
+    remote = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={"class": "rounded border-gray-300"}))
+    visa_sponsorship = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={"class": "rounded border-gray-300"}))
