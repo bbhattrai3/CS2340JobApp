@@ -144,11 +144,11 @@
 
                         <!-- Actions -->
                         <div class="pt-3 border-t border-gray-200 space-y-2">
-                            <a href="{% url 'seeker:profile_detail' profile.user.id %}" 
+                            <a href="{% url 'seeker:profile_detail' profile.user.username %}" 
                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 text-center block">
                                 View Full Profile
                             </a>
-                            <a href="{% url 'recruiter:contact_candidate' profile.id %}" 
+                            <a href="{% url 'recruiter:contact_candidate' profile.user.username %}" 
                                class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200 text-center block">
                                 Contact Candidate
                             </a>
