@@ -50,8 +50,8 @@ def browse_candidates(request):
 
 @login_required
 @recruiter_required
-def contact_candidate(request, pk):
-    profile = get_object_or_404(JobSeekerProfile, pk=pk)
+def contact_candidate(request, username):
+    profile = get_object_or_404(JobSeekerProfile, user__username=username)
     candidate_email = profile.user.email
     if request.method == 'POST':
         form = ContactCandidateForm(request.POST)
