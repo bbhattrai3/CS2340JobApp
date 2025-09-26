@@ -82,9 +82,13 @@ def profile_detail(request, username):
                 visible_fields[field] = profile.links.all()
             else:
                 visible_fields[field] = getattr(profile, field)
+
+    # print(visible_fields)
     return render(request, "seeker/profile_detail.html", {"profile": profile, "visible_fields": visible_fields})
 
 def can_view(field_privacy, viewer, owner):
+    if not field_privacy:
+        return False
     if field_privacy == "public":
         return True
     if field_privacy == "private" and viewer == owner:
