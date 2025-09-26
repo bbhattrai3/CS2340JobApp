@@ -14,7 +14,7 @@ recruiter_required = role_required("recruiter")
 @login_required
 @recruiter_required
 def post_job(request):
-    return render(request, "recruiter/post_job.html")
+    return render(request, "recruiter/post_job.html", {"active_nav": "jobs"})
 
 @login_required
 @recruiter_required
@@ -44,7 +44,7 @@ def browse_candidates(request):
         'candidates': candidates,
         'search_performed': bool(skills_query or location_query or projects_query)
     }
-    
+    context["active_nav"] = "candidates"
     return render(request, "recruiter/browse_candidates.html", context)
 
 
