@@ -87,11 +87,31 @@
         <div>
           <label for="id_skills" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Skills</label>
           <textarea name="skills" id="id_skills" rows="3"
-                    placeholder="List your skills"
+                    placeholder="List your skills (comma-separated)"
                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                            focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
                            dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
                            dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">{{ form.skills.value|default_if_none:'' }}</textarea>
+        </div>
+
+        <div>
+          <label for="id_location" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Location</label>
+          <input type="text" name="location" id="id_location" value="{{ form.location.value|default_if_none:'' }}"
+                 placeholder="e.g., Atlanta, GA or Remote"
+                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                        focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
+                        dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
+                        dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+        </div>
+
+        <div>
+          <label for="id_projects" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Projects</label>
+          <textarea name="projects" id="id_projects" rows="3"
+                    placeholder="Describe your projects"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                           focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
+                           dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
+                           dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">{{ form.projects.value|default_if_none:'' }}</textarea>
         </div>
 
         <div>
@@ -136,10 +156,16 @@
         }
         </script>
 
-        <button type="submit" 
-                class="w-full inline-flex justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-md hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-          Save Changes
-        </button>
+        <div class="flex space-x-4">
+          <button type="submit" 
+                  class="flex-1 inline-flex justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-md hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+            Save Changes
+          </button>
+          <a href="{% url 'seeker:profile_edit_privacy' profile.user.username %}" 
+             class="flex-1 inline-flex justify-center rounded-lg bg-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 shadow-md hover:bg-gray-300 focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+            Privacy Settings
+          </a>
+        </div>
       </form>
     </div>
   </div>
