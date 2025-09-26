@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from accounts.decorators import role_required
 from .models import Job
 from .forms import JobForm, JobSearchForm
+
+@login_required
 def search_jobs(request):
     form = JobSearchForm(request.GET or None)
     jobs = Job.objects.all()

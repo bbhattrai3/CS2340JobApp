@@ -1,0 +1,9 @@
+/* Custom admin styles */
+body {
+    font-family: Arial, sans-serif;
+}
+
+/* Ensure admin interface is properly styled */
+.admin-interface {
+    background-color: #f8f9fa;
+}
