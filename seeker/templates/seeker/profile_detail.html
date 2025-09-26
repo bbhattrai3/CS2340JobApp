@@ -64,39 +64,39 @@
       {% if 'education' in visible_fields %}
       <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Education</h3>
-        <p class="mt-1 text-gray-500 dark:text-gray-400">{{ profile.education }}</p>
+        <p class="mt-1 text-gray-500 dark:text-gray-400">{{ visible_fields.education }}</p>
       </div>
       {% endif %}
 
       {% if 'work_experience' in visible_fields %}
       <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Work Experience</h3>
-        <p class="mt-1 text-gray-500 dark:text-gray-400 whitespace-pre-line">{{ profile.work_experience }}</p>
+        <p class="mt-1 text-gray-500 dark:text-gray-400 whitespace-pre-line">{{ visible_fields.work_experience }}</p>
       </div>
       {% endif %}
 
       {% if 'skills' in visible_fields %}
       <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Skills</h3>
-        <p class="mt-1 text-gray-500 dark:text-gray-400 whitespace-pre-line">{{ profile.skills }}</p>
+        <p class="mt-1 text-gray-500 dark:text-gray-400 whitespace-pre-line">{{ visible_fields.skills }}</p>
       </div>
       {% endif %}
 
       {% if 'location' in visible_fields %}
       <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Location</h3>
-        <p class="mt-1 text-gray-500 dark:text-gray-400">{{ profile.location }}</p>
+        <p class="mt-1 text-gray-500 dark:text-gray-400">{{ visible_fields.location }}</p>
       </div>
       {% endif %}
 
       {% if 'projects' in visible_fields %}
       <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Projects</h3>
-        <p class="mt-1 text-gray-500 dark:text-gray-400 whitespace-pre-line">{{ profile.projects }}</p>
+        <p class="mt-1 text-gray-500 dark:text-gray-400 whitespace-pre-line">{{ visible_fields.projects }}</p>
       </div>
       {% endif %}
 
-      {% if 'links' in visible_fields and visible_fields.links %}
+      {% if visible_fields.links %}
       <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:col-span-2">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Links</h3>
         <ul class="mt-1 space-y-1">
