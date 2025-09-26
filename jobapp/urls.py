@@ -24,4 +24,5 @@ urlpatterns = [
     path("seeker/", include("seeker.urls")),
     path("recruiter/", include('recruiter.urls')),
     path("jobs/", include("job.urls")),
+    path("messaging/", include('messaging.urls')),
 ]

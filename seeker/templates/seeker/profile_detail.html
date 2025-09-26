@@ -82,11 +82,25 @@
       </div>
       {% endif %}
 
-      {% if 'links' in visible_fields and profile.links.all %}
+      {% if 'location' in visible_fields %}
+      <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Location</h3>
+        <p class="mt-1 text-gray-500 dark:text-gray-400">{{ profile.location }}</p>
+      </div>
+      {% endif %}
+
+      {% if 'projects' in visible_fields %}
+      <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Projects</h3>
+        <p class="mt-1 text-gray-500 dark:text-gray-400 whitespace-pre-line">{{ profile.projects }}</p>
+      </div>
+      {% endif %}
+
+      {% if 'links' in visible_fields and visible_fields.links %}
       <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:col-span-2">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Links</h3>
         <ul class="mt-1 space-y-1">
-          {% for link in profile.links.all %}
+          {% for link in visible_fields.links %}
             <li>
               <a href="{{ link.url }}" target="_blank" class="text-primary-600 hover:underline dark:text-blue-200">
                 {{ link.url }}
