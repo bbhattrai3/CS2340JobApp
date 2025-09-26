@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6">
+            <a href="{% url 'messaging:inbox' %}" 
+               class="text-blue-600 hover:text-blue-800 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Inbox
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="border-b border-gray-200 pb-4 mb-6">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ message.subject }}</h1>
+                <div class="flex items-center justify-between text-sm text-gray-600">
+                    <div>
+                        <span class="font-medium">From:</span> {{ message.sender.username }}
+                    </div>
+                    <div>
+                        <span class="font-medium">Date:</span> {{ message.created_at|date:"F d, Y g:i A" }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thread Messages -->
+            {% if thread_messages|length > 1 %}
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">Conversation Thread</h3>
+                    <div class="space-y-4">
+                        {% for thread_msg in thread_messages %}
+                            <div class="border-l-4 {% if thread_msg.id == message.id %}border-blue-500 bg-blue-50{% else %}border-gray-300{% endif %} pl-4 py-2">
+                                <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                                    <div>
+                                        <span class="font-medium">{{ thread_msg.sender.username }}</span>
+                                        {% if thread_msg.id == message.id %}<span class="text-blue-600 font-medium">(Current)</span>{% endif %}
+                                    </div>
+                                    <div>{{ thread_msg.created_at|date:"M d, Y g:i A" }}</div>
+                                </div>
+                                <p class="text-gray-800 whitespace-pre-line">{{ thread_msg.content }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="prose max-w-none">
+                    <p class="text-gray-800 whitespace-pre-line">{{ message.content }}</p>
+                </div>
+            {% endif %}
+
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <a href="{% url 'messaging:reply_message' message.sender.username message.id %}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition duration-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    Reply
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-6">
+            {% if parent_message %}Reply to {{ recipient.username }}{% else %}Send Message to {{ recipient.username }}{% endif %}
+        </h1>
+        
+        <!-- Recipient Info -->
+        <div class="bg-blue-50 rounded-lg p-4 mb-6">
+            <h3 class="text-sm font-medium text-blue-700 mb-2">Recipient Information:</h3>
+            <div class="text-sm text-blue-600">
+                <p><strong>Username:</strong> {{ recipient.username }}</p>
+                <p><strong>Email:</strong> {{ recipient.email }}</p>
+                <p><strong>Role:</strong> {{ recipient.get_role_display }}</p>
+            </div>
+        </div>
+        
+        {% if parent_message %}
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Replying to:</h3>
+            <div class="text-sm text-gray-600">
+                <p><strong>Subject:</strong> {{ parent_message.subject }}</p>
+                <p><strong>From:</strong> {{ parent_message.sender.username }}</p>
+                <p><strong>Date:</strong> {{ parent_message.created_at|date:"F d, Y g:i A" }}</p>
+                <p class="mt-2 whitespace-pre-line">{{ parent_message.content|truncatechars:200 }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                
+                <!-- Message Type Choice -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        {{ form.message_type.label }}
+                    </label>
+                    <div class="space-y-2">
+                        {% for choice in form.message_type %}
+                            <div class="flex items-center">
+                                {{ choice.tag }}
+                                <label for="{{ choice.id_for_label }}" class="ml-2 text-sm text-gray-700">
+                                    {{ choice.choice_label }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        <strong>Internal Message:</strong> Sent through the platform messaging system<br>
+                        <strong>External Email:</strong> Sent directly to {{ recipient.email }}
+                    </p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.subject.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Subject
+                    </label>
+                    {{ form.subject }}
+                </div>
+                
+                <div>
+                    <label for="{{ form.content.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Message
+                    </label>
+                    {{ form.content }}
+                </div>
+                
+                <div class="flex justify-between items-center pt-4">
+                    <a href="{% url 'recruiter:browse_candidates' %}" 
+                       class="text-gray-600 hover:text-gray-800">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-200">
+                        Send Message
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

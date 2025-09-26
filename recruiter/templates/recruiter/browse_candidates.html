@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load seeker_extras %}
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-6xl mx-auto">
@@ -103,23 +104,23 @@
                         </div>
 
                         <!-- Headline -->
-                        {% if profile.headline %}
+                        {% if profile.headline and profile.privacy.headline == "public" %}
                             <p class="text-gray-800 font-medium mb-3">{{ profile.headline }}</p>
                         {% endif %}
 
                         <!-- Skills -->
-                        {% if profile.skills %}
+                        {% if profile.skills and profile.privacy.skills == "public" %}
                             <div class="mb-3">
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Skills</h4>
                                 <div class="flex flex-wrap gap-1">
-                                    {% for skill in profile.skills|slice:":5" %}
+                                    {% for skill in profile.skills|split:","|slice:":5" %}
                                         <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                                             {{ skill|truncatechars:20 }}
                                         </span>
                                     {% endfor %}
-                                    {% if profile.skills|length > 5 %}
+                                    {% if profile.skills|split:","|length > 5 %}
                                         <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                                            +{{ profile.skills|length|add:"-5" }} more
+                                            +{{ profile.skills|split:","|length|add:"-5" }} more
                                         </span>
                                     {% endif %}
                                 </div>
@@ -127,7 +128,7 @@
                         {% endif %}
 
                         <!-- Location -->
-                        {% if profile.location %}
+                        {% if profile.location and profile.privacy.location == "public" %}
                             <div class="mb-3">
                                 <h4 class="text-sm font-medium text-gray-700 mb-1">Location</h4>
                                 <p class="text-sm text-gray-600">{{ profile.location }}</p>
@@ -135,7 +136,7 @@
                         {% endif %}
 
                         <!-- Education -->
-                        {% if profile.education %}
+                        {% if profile.education and profile.privacy.education == "public" %}
                             <div class="mb-3">
                                 <h4 class="text-sm font-medium text-gray-700 mb-1">Education</h4>
                                 <p class="text-sm text-gray-600">{{ profile.education|truncatechars:50 }}</p>
@@ -148,8 +149,9 @@
                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 text-center block">
                                 View Full Profile
                             </a>
-                            <a href="{% url 'recruiter:contact_candidate' profile.user.username %}" 
-                               class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200 text-center block">
+                            <a href="{% url 'messaging:send_message' profile.user.username %}" 
+                               class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200 text-center block"
+                               title="Choose between internal messaging or external email">
                                 Contact Candidate
                             </a>
                         </div>
