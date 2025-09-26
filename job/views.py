@@ -23,12 +23,12 @@ def search_jobs(request):
             jobs = jobs.filter(remote=True)
         if data.get('visa_sponsorship'):
             jobs = jobs.filter(visa_sponsorship=True)
-    return render(request, "job/job_search.html", {"form": form, "jobs": jobs})
+    return render(request, "job/job_search.html", {"form": form, "jobs": jobs, "active_nav": "jobs"})
 
 @role_required("recruiter")
 def job_list(request):
     jobs = Job.objects.filter(recruiter=request.user)
-    return render(request, "job/job_list.html", {"jobs": jobs})
+    return render(request, "job/job_list.html", {"jobs": jobs, "active_nav": "jobs"})
 
 @role_required("recruiter")
 def job_post(request):
@@ -41,7 +41,7 @@ def job_post(request):
             return redirect("job:job_list")
     else:
         form = JobForm()
-    return render(request, "job/job_post.html", {"form": form})
+    return render(request, "job/job_post.html", {"form": form, "active_nav": "jobs"})
 
 @role_required("recruiter")
 def job_edit(request, pk):
@@ -53,7 +53,7 @@ def job_edit(request, pk):
             return redirect("job:job_list")
     else:
         form = JobForm(instance=job)
-    return render(request, "job/job_edit.html", {"form": form, "job": job})
+    return render(request, "job/job_edit.html", {"form": form, "job": job, "active_nav": "jobs"})
 
 @role_required("recruiter")
 def job_delete(request, pk):
@@ -61,4 +61,4 @@ def job_delete(request, pk):
     if request.method == "POST":
         job.delete()
         return redirect("job:job_list")
-    return render(request, "job/job_confirm_delete.html", {"job": job})
+    return render(request, "job/job_confirm_delete.html", {"job": job, "active_nav": "jobs"})
