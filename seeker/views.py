@@ -63,7 +63,17 @@ def profile_edit_privacy(request, username):
 
 @login_required
 def profile_detail(request, username):
-    profile = get_object_or_404(JobSeekerProfile, user__username=username)
+    # Try to get by username, fallback to user ID
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    try:
+        profile = get_object_or_404(JobSeekerProfile, user__username=username)
+    except:
+        try:
+            user = get_object_or_404(User, id=username)
+            profile = get_object_or_404(JobSeekerProfile, user=user)
+        except:
+            raise
     visible_fields = {}
     for field, setting in profile.privacy.items():
         if can_view(setting, request.user, profile.user):
