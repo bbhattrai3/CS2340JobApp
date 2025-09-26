@@ -20,12 +20,12 @@ class JobSeekerProfile(models.Model):
         PRIVATE = "private", "Private"
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    headline = models.CharField(max_length=255)
-    education = models.CharField(max_length=255)
-    location = models.CharField(max_length=255)
-    projects = models.TextField()
-    work_experience = models.TextField()
-    skills = models.TextField()
+    headline = models.CharField(max_length=255, blank=True, null=True)
+    education = models.CharField(max_length=255, blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    projects = models.TextField(blank=True, null=True)
+    work_experience = models.TextField(blank=True, null=True)
+    skills = models.TextField(blank=True, null=True)
     privacy = JSONField(default=get_default_privacy)
 
     def __str__(self):
