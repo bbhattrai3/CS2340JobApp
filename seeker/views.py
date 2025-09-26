@@ -77,7 +77,11 @@ def profile_detail(request, username):
     visible_fields = {}
     for field, setting in profile.privacy.items():
         if can_view(setting, request.user, profile.user):
-            visible_fields[field] = getattr(profile, field)
+            if field == 'links':
+                # Handle links specially since it's a related manager
+                visible_fields[field] = profile.links.all()
+            else:
+                visible_fields[field] = getattr(profile, field)
     return render(request, "seeker/profile_detail.html", {"profile": profile, "visible_fields": visible_fields})
 
 def can_view(field_privacy, viewer, owner):

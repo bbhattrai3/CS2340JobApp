@@ -24,8 +24,8 @@ def browse_candidates(request):
     location_query = request.GET.get('location', '').strip()
     projects_query = request.GET.get('projects', '').strip()
     
-    # Start with all job seeker profiles
-    candidates = JobSeekerProfile.objects.all()
+    # Start with all job seeker profiles (exclude admin users)
+    candidates = JobSeekerProfile.objects.filter(user__is_staff=False)
     
     # Apply filters based on search criteria
     if skills_query:
