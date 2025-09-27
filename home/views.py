@@ -4,11 +4,18 @@ def index(request):
     if not request.user.is_authenticated:
         return render(request, "home/home_page.html", {"active_nav": "home"})
     if hasattr(request.user, "role") and request.user.role == "seeker":
-        # Show job search for seekers
+        # Show job search for seekers with filtering
         from job.forms import JobSearchForm
         from job.models import Job
+<<<<<<< HEAD
         form = JobSearchForm(request.GET or None)
         jobs = Job.objects.all()
+=======
+        
+        form = JobSearchForm(request.GET or None)
+        jobs = Job.objects.all()
+        
+>>>>>>> 732a9500df4635bb09328f03ea9ecd856083a122
         if form.is_valid():
             data = form.cleaned_data
             if data.get('title'):
@@ -27,6 +34,10 @@ def index(request):
                 jobs = jobs.filter(remote=True)
             if data.get('visa_sponsorship'):
                 jobs = jobs.filter(visa_sponsorship=True)
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 732a9500df4635bb09328f03ea9ecd856083a122
         return render(request, "job/job_search.html", {"form": form, "jobs": jobs, "active_nav": "jobs"})
     if hasattr(request.user, "role") and request.user.role == "recruiter":
         # Show browse candidates for recruiters with search functionality
