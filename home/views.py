@@ -34,10 +34,7 @@ def index(request):
                 jobs = jobs.filter(remote=True)
             if data.get('visa_sponsorship'):
                 jobs = jobs.filter(visa_sponsorship=True)
-<<<<<<< HEAD
-=======
         
->>>>>>> 732a9500df4635bb09328f03ea9ecd856083a122
         return render(request, "job/job_search.html", {"form": form, "jobs": jobs, "active_nav": "jobs"})
     if hasattr(request.user, "role") and request.user.role == "recruiter":
         # Show browse candidates for recruiters with search functionality
