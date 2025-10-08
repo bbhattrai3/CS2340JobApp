@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django import forms
 from .models import JobSeekerProfile, Link
 from .forms import JobSeekerProfileForm
-from django import forms
+from job.models import Application
 
 
 @login_required
@@ -26,7 +28,6 @@ def profile_edit(request, username):
 
     return render(request, "seeker/profile_edit.html", {"form": form, "profile": profile})
 
-@login_required
 @login_required
 def profile_edit_privacy(request, username):
     profile = get_object_or_404(JobSeekerProfile, user__username=username, user=request.user)
@@ -64,7 +65,6 @@ def profile_edit_privacy(request, username):
 @login_required
 def profile_detail(request, username):
     # Try to get by username, fallback to user ID
-    from django.contrib.auth import get_user_model
     User = get_user_model()
     try:
         profile = get_object_or_404(JobSeekerProfile, user__username=username)
@@ -94,3 +94,17 @@ def can_view(field_privacy, viewer, owner):
     if field_privacy == "private" and viewer == owner:
         return True
     return False
+
+@login_required
+def view_applications(request, pk):
+    if pk != request.user.id:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("You can only view your own applications.")
+
+    applications = (
+        Application.objects
+        .filter(applicant=request.user)
+        .select_related("job", "job__recruiter")
+        .order_by("-created_at")
+    )
+    return render(request, "seeker/applications_list.html", {"applications": applications})

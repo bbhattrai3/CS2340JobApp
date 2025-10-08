@@ -21,8 +21,16 @@
             </div>
 
             <!-- Button wrapper -->
-            <div class="self-start mt-4 mb-5 ml-5">
-              <a href="{% url 'job:job_edit' job.pk %}" class="job-card-edit inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white">Edit</a>
+            <div class="self-start mt-4 mb-5 ml-5 flex gap-3">
+              <a href="{% url 'job:job_edit' job.pk %}"
+                class="job-card-edit inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white">
+                Edit
+              </a>
+
+              <a href="{% url 'job:job_applicants' job.pk %}"
+                class="inline-flex items-center px-4 py-2 text-sm font-medium text-green-600 border border-green-600 rounded-lg hover:bg-green-600 hover:text-white">
+                View Applicants
+              </a>
             </div>
           </div>
 
