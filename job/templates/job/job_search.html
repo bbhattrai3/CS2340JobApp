@@ -52,6 +52,12 @@
             <p class="text-xs text-gray-500 mb-2">Salary: {{ job.salary_min|default:'N/A' }} - {{ job.salary_max|default:'N/A' }}</p>
             <p class="text-xs text-gray-500 mb-2">Remote: {{ job.remote|yesno:"Yes,No" }}</p>
             <p class="text-xs text-gray-500 mb-2">Visa Sponsorship: {{ job.visa_sponsorship|yesno:"Yes,No" }}</p>
+            {% if user.role == 'seeker' %}
+              <a href="{% url 'job:apply_job' job.pk %}"
+                class="inline-block mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">
+                Details
+              </a>
+            {% endif %}
           </div>
         </div>
       {% endfor %}

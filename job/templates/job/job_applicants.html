@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-6 py-8">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">
+    Applicants for "{{ job.title }}"
+  </h1>
+
+  {% if applicants %}
+    <div class="grid gap-6">
+      {% for app in applicants %}
+        <div class="bg-white shadow rounded-lg p-5">
+          <h2 class="text-lg font-semibold text-gray-800">
+            {{ app.applicant.username }}
+          </h2>
+          <p class="text-sm text-gray-500 mb-2">
+            Applied on {{ app.created_at|date:"M d, Y" }}
+          </p>
+          {% if app.cover_letter %}
+            <details class="mt-2">
+              <summary class="cursor-pointer text-blue-600 text-sm hover:underline">
+                View Note
+              </summary>
+              <p class="mt-1 text-gray-700 whitespace-pre-wrap">
+                {{ app.cover_letter }}
+              </p>
+            </details>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-gray-600">No one has applied for this job yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

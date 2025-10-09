@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from accounts.decorators import role_required
-from .models import Job
+from .models import Job, Application
 from .forms import JobForm, JobSearchForm
 
 @login_required
@@ -27,6 +28,27 @@ def search_jobs(request):
         if data.get('visa_sponsorship'):
             jobs = jobs.filter(visa_sponsorship=True)
     return render(request, "job/job_search.html", {"form": form, "jobs": jobs, "active_nav": "jobs"})
+
+@login_required
+def apply_job(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+
+    # Handle duplicates
+    if Application.objects.filter(job=job, applicant=request.user).exists():
+        return redirect("seeker:applications_list", pk=request.user.id)
+    
+    if request.method == "POST":
+        note = request.POST.get("note", "").strip()
+        
+        Application.objects.create(
+            job=job,
+            applicant=request.user,
+            note=note
+        )
+
+        return redirect("seeker:applications_list", pk=request.user.id)
+
+    return render(request, "job/apply_page.html", {"job":job})
 
 @role_required("recruiter")
 def job_list(request):
@@ -65,3 +87,23 @@ def job_delete(request, pk):
         job.delete()
         return redirect("job:job_list")
     return render(request, "job/job_confirm_delete.html", {"job": job, "active_nav": "jobs"})
+
+
+@role_required("recruiter")
+def job_applicants(request, pk):
+    """
+    Show all applicants who applied to a given job (only visible to the job's recruiter).
+    """
+    job = get_object_or_404(Job, pk=pk, recruiter=request.user)
+    applicants = (
+        Application.objects
+        .filter(job=job)
+        .select_related("applicant")
+        .order_by("-created_at")
+    )
+
+    return render(
+        request,
+        "job/job_applicants.html",
+        {"job": job, "applicants": applicants, "active_nav": "jobs"},
+    )

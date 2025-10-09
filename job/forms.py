@@ -8,6 +8,8 @@ class JobForm(forms.ModelForm):
             "title",
             "description",
             "location",
+            "latitude", 
+            "longitude",
             "remote",
             "salary_min",
             "salary_max",
@@ -23,6 +25,8 @@ class JobForm(forms.ModelForm):
             "salary_max": forms.NumberInput(attrs={"class": "w-full rounded-md border-gray-300"}),
             "remote": forms.CheckboxInput(attrs={"class": "rounded border-gray-300"}),
             "visa_sponsorship": forms.CheckboxInput(attrs={"class": "rounded border-gray-300"}),
+            "latitude": forms.HiddenInput(),
+            "longitude": forms.HiddenInput(),
         }
 
 class JobSearchForm(forms.Form):
