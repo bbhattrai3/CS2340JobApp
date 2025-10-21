@@ -55,17 +55,33 @@
 
                 <!-- Search Buttons -->
                 <div class="flex justify-between items-center pt-4">
-                    <button type="submit" 
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-200">
-                        Search Candidates
-                    </button>
+                    <div class="flex space-x-3">
+                        <button type="submit" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-200">
+                            Search Candidates
+                        </button>
+                        
+                        {% if request.GET.skills or request.GET.location or request.GET.projects %}
+                            <button type="button" 
+                                    onclick="toggleSaveSearchModal()"
+                                    class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-md transition duration-200">
+                                Save This Search
+                            </button>
+                        {% endif %}
+                    </div>
                     
-                    {% if request.GET.skills or request.GET.location or request.GET.projects %}
-                        <a href="{% url 'recruiter:browse_candidates' %}" 
-                           class="text-gray-600 hover:text-gray-800">
-                            Clear Filters
+                    <div class="flex space-x-3">
+                        {% if request.GET.skills or request.GET.location or request.GET.projects %}
+                            <a href="{% url 'recruiter:browse_candidates' %}" 
+                               class="text-gray-600 hover:text-gray-800">
+                                Clear Filters
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'recruiter:saved_searches' %}" 
+                           class="text-blue-600 hover:text-blue-800 font-medium">
+                            View Saved Searches
                         </a>
-                    {% endif %}
+                    </div>
                 </div>
             </form>
         </div>
@@ -182,6 +198,97 @@
                 {% endif %}
             </div>
         {% endif %}
+
+        <!-- Saved Searches Section -->
+        {% if saved_searches %}
+            <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Your Saved Searches</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for search in saved_searches %}
+                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
+                            <h3 class="font-medium text-gray-900 mb-2">{{ search.name }}</h3>
+                            <div class="text-sm text-gray-600 mb-3">
+                                {% if search.skills_query %}
+                                    <div><strong>Skills:</strong> {{ search.skills_query }}</div>
+                                {% endif %}
+                                {% if search.location_query %}
+                                    <div><strong>Location:</strong> {{ search.location_query }}</div>
+                                {% endif %}
+                                {% if search.projects_query %}
+                                    <div><strong>Projects:</strong> {{ search.projects_query }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="{{ search.get_search_url }}" 
+                                   class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-md transition duration-200 text-center">
+                                    Run Search
+                                </a>
+                                <a href="{% url 'recruiter:delete_saved_search' search.id %}" 
+                                   onclick="return confirm('Are you sure you want to delete this saved search?')"
+                                   class="bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-3 rounded-md transition duration-200">
+                                    Delete
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
+
+<!-- Save Search Modal -->
+<div id="saveSearchModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Save Search</h3>
+                <form method="POST" action="{% url 'recruiter:save_search' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="skills" value="{{ current_search.skills }}">
+                    <input type="hidden" name="location" value="{{ current_search.location }}">
+                    <input type="hidden" name="projects" value="{{ current_search.projects }}">
+                    
+                    <div class="mb-4">
+                        <label for="searchName" class="block text-sm font-medium text-gray-700 mb-2">
+                            Search Name
+                        </label>
+                        <input type="text" 
+                               id="searchName" 
+                               name="name" 
+                               required
+                               placeholder="e.g., Python Developers in Atlanta"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="text-sm text-gray-600 mb-4">
+                        <strong>Search Criteria:</strong><br>
+                        {% if current_search.skills %}Skills: {{ current_search.skills }}<br>{% endif %}
+                        {% if current_search.location %}Location: {{ current_search.location }}<br>{% endif %}
+                        {% if current_search.projects %}Projects: {{ current_search.projects }}<br>{% endif %}
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" 
+                                onclick="toggleSaveSearchModal()"
+                                class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition duration-200">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition duration-200">
+                            Save Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleSaveSearchModal() {
+    const modal = document.getElementById('saveSearchModal');
+    modal.classList.toggle('hidden');
+}
+</script>
 {% endblock content %}
