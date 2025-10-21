@@ -107,3 +107,24 @@ def job_applicants(request, pk):
         "job/job_applicants.html",
         {"job": job, "applicants": applicants, "active_nav": "jobs"},
     )
+
+@role_required("recruiter")
+def update_application_status(request, app_id):
+    application = get_object_or_404(Application, id=app_id)
+
+    # Ensure only the recruiter for this job can update
+    if application.job.recruiter != request.user:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("You are not allowed to update this application.")
+
+    if request.method == "POST":
+        new_status = request.POST.get("status")
+        valid_statuses = {choice for choice, _ in Application.Status.choices}
+        if new_status in valid_statuses:
+            application.status = new_status
+            application.save()
+            messages.success(request, "Application status updated.")
+        else:
+            messages.error(request, "Invalid status.")
+
+    return redirect("job:job_applicants", pk=application.job.id)

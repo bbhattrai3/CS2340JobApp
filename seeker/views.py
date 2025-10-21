@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django import forms
@@ -108,3 +109,4 @@ def view_applications(request, pk):
         .order_by("-created_at")
     )
     return render(request, "seeker/applications_list.html", {"applications": applications})
+
