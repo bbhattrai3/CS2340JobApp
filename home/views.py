@@ -34,7 +34,7 @@ def index(request):
     if hasattr(request.user, "role") and request.user.role == "recruiter":
         # Show browse candidates for recruiters with search functionality
         from seeker.models import JobSeekerProfile
-        
+        from job.models import Job
         # Get search parameters from URL
         skills_query = request.GET.get('skills', '').strip()
         location_query = request.GET.get('location', '').strip()
@@ -56,10 +56,31 @@ def index(request):
         # Order by most recent first
         candidates = candidates.order_by('-id')
         
+        job_skills = set()
+        jobs = Job.objects.filter(recruiter=request.user)
+        
+        for job in jobs:
+            if job.skills:
+                job_skills.update([s.strip().lower() for s in job.skills.strip().split(",") if s.strip()])
+
+        recommended_scores = []
+        for candidate in JobSeekerProfile.objects.filter(user__is_staff=False):
+            if candidate.skills:
+                candidate_skills = set([s.strip().lower() for s in candidate.skills.strip().split(",") if s.strip()])
+                overlap = candidate_skills & job_skills
+                if len(overlap) >= 1:
+                    recommended_scores.append((candidate, len(overlap)))
+        
+        recommended_scores.sort(key=lambda x: x[1], reverse=True)
+        recommended_candidates = [candidate for candidate, score in recommended_scores[:10]]
+        print("Recommended:", [c.user.username for c in recommended_candidates])
+        
         context = {
             'candidates': candidates,
+            'recommended_candidates': recommended_candidates,
             'search_performed': bool(skills_query or location_query or projects_query),
-            'active_nav': 'candidates'
-        }
-        return render(request, "recruiter/browse_candidates.html", context)
+            'active_nav': 'candidates',
+    }
+
+    return render(request, "recruiter/browse_candidates.html", context)
     return render(request, "home/home_page.html", {"active_nav": "home"})

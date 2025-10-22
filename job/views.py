@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from accounts.decorators import role_required
 from .models import Job, Application
 from .forms import JobForm, JobSearchForm
+from seeker.models import JobSeekerProfile
 
 @login_required
 def search_jobs(request):
@@ -107,3 +108,4 @@ def job_applicants(request, pk):
         "job/job_applicants.html",
         {"job": job, "applicants": applicants, "active_nav": "jobs"},
     )
+        
