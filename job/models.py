@@ -19,10 +19,19 @@ class Job(models.Model):
         return self.title
 
 class Application(models.Model):
+    class Status(models.TextChoices):
+        APPLIED = 'applied', 'Applied'
+        REVIEW = 'review', 'Review'
+        INTERVIEW = 'interview', 'Interview'
+        OFFER = 'offer', 'Offer'
+        CLOSED = 'closed', 'Closed'
+
     job = models.ForeignKey('Job', on_delete=models.CASCADE, related_name='applications')
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.APPLIED)
     note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ('job', 'applicant')
