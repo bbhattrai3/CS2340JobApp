@@ -71,6 +71,7 @@ def browse_candidates(request):
         'recommended_candidates': recommended_candidates,
         'search_performed': bool(skills_query or location_query or projects_query),
         'active_nav': 'candidates',
+    }
     # Get saved searches for this recruiter
     saved_searches = SavedSearch.objects.filter(recruiter=request.user)
     
