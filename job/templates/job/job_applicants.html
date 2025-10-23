@@ -1,35 +1,117 @@
 {% extends 'base.html' %}
-{% block content %}
-<div class="max-w-5xl mx-auto px-6 py-8">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">
-    Applicants for "{{ job.title }}"
-  </h1>
+{% load static %}
 
-  {% if applicants %}
-    <div class="grid gap-6">
-      {% for app in applicants %}
-        <div class="bg-white shadow rounded-lg p-5">
-          <h2 class="text-lg font-semibold text-gray-800">
-            {{ app.applicant.username }}
-          </h2>
-          <p class="text-sm text-gray-500 mb-2">
-            Applied on {{ app.created_at|date:"M d, Y" }}
-          </p>
-          {% if app.cover_letter %}
-            <details class="mt-2">
-              <summary class="cursor-pointer text-blue-600 text-sm hover:underline">
-                View Note
-              </summary>
-              <p class="mt-1 text-gray-700 whitespace-pre-wrap">
-                {{ app.cover_letter }}
-              </p>
-            </details>
-          {% endif %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">
+      Applicants for "{{ job.title }}"
+    </h1>
+    <p class="text-gray-600 mt-2">{{ total_applicants }} total applicants</p>
+  </div>
+
+  {% if total_applicants > 0 %}
+    <!-- Kanban Board - Fixed height with internal scrolling -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3" id="kanbanBoard">
+      {% for column in stage_data %}
+        <div class="kanban-column bg-gray-50 rounded-lg border border-gray-200 flex flex-col" data-stage="{{ column.stage_value }}" style="max-height: 70vh;">
+          <div class="p-4 border-b border-gray-200 bg-white rounded-t-lg flex-shrink-0">
+            <h3 class="font-semibold text-gray-800 flex justify-between items-center">
+              <span class="truncate">{{ column.stage_name }}</span>
+              <span class="application-count bg-gray-200 text-gray-700 rounded-full px-2 py-1 text-xs min-w-6 text-center ml-2">
+                {{ column.count }}
+              </span>
+            </h3>
+          </div>
+          <div class="applications-list p-4 space-y-4 flex-1 overflow-y-auto" id="stage-{{ column.stage_value }}">
+            {% for application in column.applications %}
+              <div class="application-card bg-white shadow-sm rounded-lg p-4 cursor-move transition-all duration-200 hover:shadow-md border border-gray-100"
+                   draggable="true" 
+                   data-application-id="{{ application.id }}"
+                   id="app-{{ application.id }}">
+                <div class="applicant-info">
+                  <h4 class="font-semibold text-gray-800 text-sm">
+                    {{ application.applicant.get_full_name|default:application.applicant.username }}
+                  </h4>
+                  <p class="text-xs text-gray-500 mt-1">{{ application.applicant.email }}</p>
+                  {% if application.applicant.profile.title %}
+                    <p class="text-xs text-gray-600 mt-1">{{ application.applicant.profile.title }}</p>
+                  {% endif %}
+                </div>
+                <div class="application-meta flex justify-between items-center mt-3 text-xs text-gray-500">
+                  <span>{{ application.created_at|timesince }} ago</span>
+                  {% if application.note %}
+                    <div class="application-note text-blue-600 flex-shrink-0 ml-1" title="{{ application.note }}">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                    </div>
+                  {% endif %}
+                </div>
+                {% if application.note %}
+                  <details class="mt-3">
+                    <summary class="cursor-pointer text-blue-600 text-xs hover:underline">
+                      View Note
+                    </summary>
+                    <p class="mt-2 text-gray-700 whitespace-pre-wrap text-xs bg-gray-50 p-3 rounded">
+                      {{ application.note }}
+                    </p>
+                  </details>
+                {% endif %}
+              </div>
+            {% empty %}
+              <div class="empty-column text-center text-gray-500 py-12">
+                <p class="text-sm">No applicants in this stage</p>
+              </div>
+            {% endfor %}
+          </div>
         </div>
       {% endfor %}
     </div>
   {% else %}
-    <p class="text-gray-600">No one has applied for this job yet.</p>
+    <div class="text-center py-12">
+      <p class="text-gray-600 text-lg">No one has applied for this job yet.</p>
+    </div>
   {% endif %}
+  <script src="{% static 'js/kanban.js' %}"></script>
 </div>
+
+<style>
+.kanban-column {
+  border-left: 4px solid;
+}
+
+.kanban-column[data-stage="applied"] { border-left-color: #3b82f6; }
+.kanban-column[data-stage="screening"] { border-left-color: #8b5cf6; }
+.kanban-column[data-stage="interview"] { border-left-color: #f59e0b; }
+.kanban-column[data-stage="offer"] { border-left-color: #10b981; }
+.kanban-column[data-stage="rejected"] { border-left-color: #ef4444; }
+.kanban-column[data-stage="hired"] { border-left-color: #059669; }
+
+.applications-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.applications-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.applications-list::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.applications-list::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Ensure proper spacing for empty states */
+.empty-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+</style>
 {% endblock %}

@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from accounts.decorators import role_required
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 from .models import Job, Application
 from .forms import JobForm, JobSearchForm
 
@@ -95,15 +97,71 @@ def job_applicants(request, pk):
     Show all applicants who applied to a given job (only visible to the job's recruiter).
     """
     job = get_object_or_404(Job, pk=pk, recruiter=request.user)
-    applicants = (
-        Application.objects
-        .filter(job=job)
-        .select_related("applicant")
-        .order_by("-created_at")
-    )
+    stage_data = []
+    for stage_value, stage_name in Application.STAGE_CHOICES:
+        applications = (
+            Application.objects
+            .filter(job=job, stage=stage_value)
+            .select_related("applicant")
+            .order_by("-created_at")
+        )
+        stage_data.append({
+            'stage_value': stage_value,
+            'stage_name': stage_name,
+            'applications': applications,
+            'count': applications.count()
+        })
 
     return render(
         request,
         "job/job_applicants.html",
-        {"job": job, "applicants": applicants, "active_nav": "jobs"},
+        {
+            "job": job, 
+            "stage_data": stage_data, 
+            "active_nav": "jobs",
+            "total_applicants": sum(stage['count'] for stage in stage_data),
+            "STAGE_CHOICES": Application.STAGE_CHOICES
+        },
     )
+
+@role_required("recruiter")
+@require_POST
+def update_application_stage(request, pk):
+    """
+    Update application stage via AJAX (drag & drop in Kanban).
+    """
+    try:
+        # Get the job first to verify ownership
+        job = get_object_or_404(Job, pk=pk, recruiter=request.user)
+        
+        # Get application ID and new stage from POST data
+        application_id = request.POST.get('application_id')
+        new_stage = request.POST.get('stage')
+        
+        print(f"Updating application {application_id} to stage {new_stage} for job {pk}")
+        
+        if not application_id:
+            return JsonResponse({'error': 'Application ID is required'}, status=400)
+        
+        application = get_object_or_404(Application, pk=application_id, job=job)
+        
+        # Validate stage choice
+        valid_stages = [choice[0] for choice in Application.STAGE_CHOICES]
+        if new_stage not in valid_stages:
+            return JsonResponse({'error': 'Invalid stage'}, status=400)
+        
+        # Update application stage
+        old_stage = application.stage
+        application.stage = new_stage
+        application.save()
+        
+        print(f"Successfully updated application {application_id} from {old_stage} to {new_stage}")
+        
+        return JsonResponse({
+            'success': True,
+            'new_stage_name': dict(Application.STAGE_CHOICES)[new_stage]
+        })
+        
+    except Exception as e:
+        print(f"Error updating application stage: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)

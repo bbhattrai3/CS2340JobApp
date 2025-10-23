@@ -19,10 +19,19 @@ class Job(models.Model):
         return self.title
 
 class Application(models.Model):
+    STAGE_CHOICES = [
+        ('applied', 'Applied'),
+        ('screening', 'Phone Screening'),
+        ('interview', 'Interview'),
+        ('offer', 'Offer'),
+        ('rejected', 'Rejected'),
+        ('hired', 'Hired'),
+    ]
     job = models.ForeignKey('Job', on_delete=models.CASCADE, related_name='applications')
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now=True)
     note = models.TextField(blank=True)
+    stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default='applied')
 
     class Meta:
         unique_together = ('job', 'applicant')
