@@ -39,7 +39,7 @@ SECRET_KEY = 'django-insecure-1&0!_16c9bxn3&048u6l)r+w%#mwkj$r(ro-)z&x9vqmm46c_5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -153,10 +153,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Production settings for PythonAnywhere
 if 'pythonanywhere.com' in os.environ.get('HTTP_HOST', ''):
     DEBUG = False
-    ALLOWED_HOSTS = ['genewc.pythonanywhere.com']
+    ALLOWED_HOSTS = ['*','genewc.pythonanywhere.com']
 else:
     DEBUG = True
-    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+    ALLOWED_HOSTS = ['*','127.0.0.1', 'localhost']
 
 # Email configuration
 # Check if email credentials are provided in environment variables
