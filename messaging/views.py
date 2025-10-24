@@ -8,6 +8,8 @@ import uuid
 from .models import Message
 from .forms import MessageForm
 from accounts.models import User
+from job.models import Job
+from seeker.models import JobSeekerProfile
 
 @login_required
 def inbox(request):
