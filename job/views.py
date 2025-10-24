@@ -161,7 +161,7 @@ def update_application_stage(request, pk):
             'success': True,
             'new_stage_name': dict(Application.STAGE_CHOICES)[new_stage]
         })
-        
+
     except Exception as e:
         print(f"Error updating application stage: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)

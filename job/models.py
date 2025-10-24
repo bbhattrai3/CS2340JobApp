@@ -32,6 +32,5 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now=True)
     note = models.TextField(blank=True)
     stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default='applied')
-
     class Meta:
         unique_together = ('job', 'applicant')

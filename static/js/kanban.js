@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup drop zones for all columns
     const kanbanColumns = document.querySelectorAll('.kanban-column');
     console.log(`Found ${kanbanColumns.length} kanban columns`);
-    
+
     kanbanColumns.forEach(column => {
         column.addEventListener('dragover', function(e) {
             e.preventDefault();
