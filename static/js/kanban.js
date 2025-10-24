@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup drop zones for all columns
     const kanbanColumns = document.querySelectorAll('.kanban-column');
     console.log(`Found ${kanbanColumns.length} kanban columns`);
-
+    
     kanbanColumns.forEach(column => {
         column.addEventListener('dragover', function(e) {
             e.preventDefault();
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         column.addEventListener('drop', function(e) {
             e.preventDefault();
-            console.log('Drop event on column:', this.dataset.stage);
+            console.log('Drop event on column:', this.dataset.status);
             
             this.classList.remove('drag-over');
             
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const applicationId = e.dataTransfer.getData('text/plain');
-            const newStage = this.dataset.stage;
+            const newStatus = this.dataset.status;
             
             // Check if this is the same column
             if (this === originalColumn) {
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            console.log(`Moving application ${applicationId} to stage ${newStage}`);
+            console.log(`Moving application ${applicationId} to status ${newStatus}`);
             
             // Store the current state for potential rollback
             const currentState = {
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             // Send AJAX request first, then update UI on success
-            updateApplicationStage(jobId, applicationId, newStage, currentState);
+            updateApplicationStatus(jobId, applicationId, newStatus, currentState);
         });
     });
 
@@ -105,13 +105,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function updateApplicationStage(jobId, applicationId, newStage, currentState) {
+    function updateApplicationStatus(jobId, applicationId, newStatus, currentState) {
         const csrfToken = getCookie('csrftoken');
-        const url = `/jobs/${jobId}/applicants/update-stage/`;
+        const url = `/jobs/${jobId}/applicants/update-status/`;
         
         console.log('Making request to:', url);
         console.log('Application ID:', applicationId);
-        console.log('New stage:', newStage);
+        console.log('New status:', newStatus);
         
         fetch(url, {
             method: 'POST',
@@ -119,11 +119,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 'X-CSRFToken': csrfToken,
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `application_id=${applicationId}&stage=${newStage}`
+            body: `application_id=${applicationId}&status=${newStatus}`
         })
         .then(response => {
             console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
             
             if (!response.ok) {
                 // Try to get error message from response
@@ -140,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update UI only after successful backend update
                 moveCardVisually(currentState);
                 updateColumnCounts();
-                showNotification(`✓ Moved to ${data.new_stage_name}`, 'success');
+                showNotification(`✓ Moved to ${data.new_status_name}`, 'success');
                 
                 // Reset for next drag operation
                 draggedCard = null;

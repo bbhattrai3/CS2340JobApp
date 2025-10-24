@@ -2,10 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from accounts.decorators import role_required
-from django.views.decorators.http import require_POST
-from django.http import JsonResponse
 from .models import Job, Application
 from .forms import JobForm, JobSearchForm
+from seeker.models import JobSeekerProfile
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+
 
 @login_required
 def search_jobs(request):
@@ -97,17 +100,19 @@ def job_applicants(request, pk):
     Show all applicants who applied to a given job (only visible to the job's recruiter).
     """
     job = get_object_or_404(Job, pk=pk, recruiter=request.user)
-    stage_data = []
-    for stage_value, stage_name in Application.STAGE_CHOICES:
+    
+    # Group applications by status for Kanban board
+    status_data = []
+    for status_value, status_name in Application.Status.choices:
         applications = (
             Application.objects
-            .filter(job=job, stage=stage_value)
+            .filter(job=job, status=status_value)
             .select_related("applicant")
             .order_by("-created_at")
         )
-        stage_data.append({
-            'stage_value': stage_value,
-            'stage_name': stage_name,
+        status_data.append({
+            'status_value': status_value,
+            'status_name': status_name,
             'applications': applications,
             'count': applications.count()
         })
@@ -117,51 +122,51 @@ def job_applicants(request, pk):
         "job/job_applicants.html",
         {
             "job": job, 
-            "stage_data": stage_data, 
+            "status_data": status_data,
             "active_nav": "jobs",
-            "total_applicants": sum(stage['count'] for stage in stage_data),
-            "STAGE_CHOICES": Application.STAGE_CHOICES
+            "total_applicants": sum(stage['count'] for stage in status_data),
         },
     )
 
 @role_required("recruiter")
 @require_POST
-def update_application_stage(request, pk):
+def update_application_status(request, pk):
     """
-    Update application stage via AJAX (drag & drop in Kanban).
+    Update application status via AJAX (drag & drop in Kanban).
+    Replaces the old update_application_status method.
     """
     try:
         # Get the job first to verify ownership
         job = get_object_or_404(Job, pk=pk, recruiter=request.user)
         
-        # Get application ID and new stage from POST data
+        # Get application ID and new status from POST data
         application_id = request.POST.get('application_id')
-        new_stage = request.POST.get('stage')
+        new_status = request.POST.get('status')
         
-        print(f"Updating application {application_id} to stage {new_stage} for job {pk}")
+        print(f"Updating application {application_id} to status {new_status} for job {pk}")
         
         if not application_id:
             return JsonResponse({'error': 'Application ID is required'}, status=400)
         
         application = get_object_or_404(Application, pk=application_id, job=job)
         
-        # Validate stage choice
-        valid_stages = [choice[0] for choice in Application.STAGE_CHOICES]
-        if new_stage not in valid_stages:
-            return JsonResponse({'error': 'Invalid stage'}, status=400)
+        # Validate status choice
+        valid_statuses = [choice[0] for choice in Application.Status.choices]
+        if new_status not in valid_statuses:
+            return JsonResponse({'error': 'Invalid status'}, status=400)
         
-        # Update application stage
-        old_stage = application.stage
-        application.stage = new_stage
+        # Update application status
+        old_status = application.status
+        application.status = new_status
         application.save()
         
-        print(f"Successfully updated application {application_id} from {old_stage} to {new_stage}")
+        print(f"Successfully updated application {application_id} from {old_status} to {new_status}")
         
         return JsonResponse({
             'success': True,
-            'new_stage_name': dict(Application.STAGE_CHOICES)[new_stage]
+            'new_status_name': dict(Application.Status.choices)[new_status]
         })
-
+        
     except Exception as e:
-        print(f"Error updating application stage: {str(e)}")
+        print(f"Error updating application status: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
