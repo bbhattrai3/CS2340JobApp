@@ -66,24 +66,20 @@ def browse_candidates(request):
     recommended_candidates = [candidate for candidate, score in recommended_scores[:10]]
     print("Recommended:", [c.user.username for c in recommended_candidates])
     
-    context = {
-        'candidates': candidates,
-        'recommended_candidates': recommended_candidates,
-        'search_performed': bool(skills_query or location_query or projects_query),
-        'active_nav': 'candidates',
-    }
     # Get saved searches for this recruiter
     saved_searches = SavedSearch.objects.filter(recruiter=request.user)
     
     context = {
         'candidates': candidates,
+        'recommended_candidates': recommended_candidates,
         'search_performed': bool(skills_query or location_query or projects_query),
         'saved_searches': saved_searches,
         'current_search': {
             'skills': skills_query,
             'location': location_query,
             'projects': projects_query,
-        }
+        },
+        'active_nav': 'candidates',
     }
 
     return render(request, "recruiter/browse_candidates.html", context)

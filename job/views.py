@@ -7,6 +7,7 @@ from .forms import JobForm, JobSearchForm
 from seeker.models import JobSeekerProfile
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+import json
 
 
 
@@ -33,6 +34,48 @@ def search_jobs(request):
         if data.get('visa_sponsorship'):
             jobs = jobs.filter(visa_sponsorship=True)
     return render(request, "job/job_search.html", {"form": form, "jobs": jobs, "active_nav": "jobs"})
+
+@login_required
+@role_required("seeker")
+def job_map(request):
+    """
+    Interactive map view for job seekers to see job postings with their current location.
+    """
+    # Get all jobs with coordinates
+    jobs = Job.objects.filter(
+        latitude__isnull=False,
+        longitude__isnull=False
+    ).exclude(
+        latitude=0,
+        longitude=0
+    )
+    
+    # Prepare job data for the map
+    job_data = []
+    for job in jobs:
+        job_data.append({
+            'id': job.id,
+            'title': job.title,
+            'location': job.location or 'Location not specified',
+            'latitude': float(job.latitude),
+            'longitude': float(job.longitude),
+            'remote': job.remote,
+            'salary_min': job.salary_min,
+            'salary_max': job.salary_max,
+            'skills': job.skills,
+            'description': job.description[:200] + '...' if len(job.description) > 200 else job.description,
+            'created_at': job.created_at.strftime('%B %d, %Y'),
+            'recruiter': job.recruiter.username,
+            'apply_url': f'/job/{job.id}/apply/'
+        })
+    
+    context = {
+        'jobs': jobs,
+        'job_data_json': json.dumps(job_data),
+        'active_nav': 'map'
+    }
+    
+    return render(request, "job/job_map.html", context)
 
 @login_required
 def apply_job(request, pk):

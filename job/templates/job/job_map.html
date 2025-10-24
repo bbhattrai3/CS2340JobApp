@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Job Map</h1>
+                    <p class="text-gray-600">Find jobs near your location</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="locateMeBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        <i class="fas fa-crosshairs mr-2"></i>Locate Me
+                    </button>
+                    <a href="{% url 'job:job_search' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        <i class="fas fa-list mr-2"></i>List View
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div class="relative" style="height: calc(100vh - 120px);">
+        <div id="map" class="w-full h-full"></div>
+        
+        <!-- Loading indicator -->
+        <div id="loadingIndicator" class="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-3 flex items-center space-x-2">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span class="text-sm text-gray-600">Loading map...</span>
+        </div>
+
+        <!-- Job info panel -->
+        <div id="jobInfoPanel" class="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm hidden">
+            <div class="flex justify-between items-start mb-3">
+                <h3 id="jobTitle" class="text-lg font-semibold text-gray-800"></h3>
+                <button id="closeJobInfo" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="jobDetails" class="space-y-2 text-sm text-gray-600">
+                <!-- Job details will be populated here -->
+            </div>
+            <div class="mt-4">
+                <a id="applyJobBtn" href="#" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg transition duration-200 block">
+                    Apply Now
+                </a>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-3">
+            <h4 class="text-sm font-semibold text-gray-800 mb-2">Legend</h4>
+            <div class="space-y-1 text-xs">
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span class="text-gray-600">Job Locations</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span class="text-gray-600">Your Location</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<!-- Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Job data from Django
+const jobData = {{ job_data_json|safe }};
+let map;
+let userLocationMarker;
+let jobMarkers = [];
+let userLocation = null;
+
+// Initialize map
+function initMap() {
+    // Default center (Atlanta, GA)
+    map = L.map('map').setView([33.7490, -84.3880], 10);
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Add job markers
+    addJobMarkers();
+    
+    // Hide loading indicator
+    document.getElementById('loadingIndicator').style.display = 'none';
+}
+
+// Add job markers to map
+function addJobMarkers() {
+    jobData.forEach(job => {
+        // Create custom icon - all jobs use the same briefcase icon
+        const customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-lg">
+                     <i class="fas fa-briefcase text-sm"></i>
+                   </div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        });
+        
+        const marker = L.marker([job.latitude, job.longitude], { icon: customIcon })
+            .addTo(map)
+            .bindPopup(`
+                <div class="p-2">
+                    <h3 class="font-semibold text-gray-800 mb-2">${job.title}</h3>
+                    <p class="text-sm text-gray-600 mb-2">${job.location}</p>
+                    <p class="text-xs text-gray-500 mb-2">${job.description}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-500">${job.created_at}</span>
+                        <button onclick="showJobDetails(${job.id})" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            `);
+        
+        jobMarkers.push(marker);
+    });
+}
+
+// Show job details in side panel
+function showJobDetails(jobId) {
+    const job = jobData.find(j => j.id === jobId);
+    if (!job) return;
+    
+    document.getElementById('jobTitle').textContent = job.title;
+    document.getElementById('applyJobBtn').href = job.apply_url;
+    
+    const jobDetails = document.getElementById('jobDetails');
+    jobDetails.innerHTML = `
+        <div><strong>Location:</strong> ${job.location}</div>
+        <div><strong>Posted:</strong> ${job.created_at}</div>
+        <div><strong>Recruiter:</strong> ${job.recruiter}</div>
+        ${job.salary_min || job.salary_max ? `<div><strong>Salary:</strong> ${job.salary_min ? '$' + job.salary_min.toLocaleString() : 'N/A'} - ${job.salary_max ? '$' + job.salary_max.toLocaleString() : 'N/A'}</div>` : ''}
+        ${job.skills ? `<div><strong>Skills:</strong> ${job.skills}</div>` : ''}
+        <div class="mt-2"><strong>Description:</strong></div>
+        <div class="text-xs text-gray-500 mt-1">${job.description}</div>
+    `;
+    
+    document.getElementById('jobInfoPanel').classList.remove('hidden');
+    
+    // Pan to job location
+    map.setView([job.latitude, job.longitude], 15);
+}
+
+// Get user's current location
+function locateUser() {
+    const btn = document.getElementById('locateMeBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Locating...';
+    btn.disabled = true;
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                // Remove existing user location marker
+                if (userLocationMarker) {
+                    map.removeLayer(userLocationMarker);
+                }
+                
+                // Add user location marker
+                const userIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white shadow-lg animate-pulse">
+                             <i class="fas fa-user text-sm"></i>
+                           </div>`,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                });
+                
+                userLocationMarker = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+                    .addTo(map)
+                    .bindPopup('<div class="p-2"><strong>Your Location</strong></div>');
+                
+                // Center map on user location
+                map.setView([userLocation.lat, userLocation.lng], 12);
+                
+                // Calculate distances to jobs
+                calculateDistances();
+                
+                btn.innerHTML = '<i class="fas fa-crosshairs mr-2"></i>Locate Me';
+                btn.disabled = false;
+            },
+            function(error) {
+                console.error('Error getting location:', error);
+                alert('Unable to get your location. Please check your browser permissions.');
+                btn.innerHTML = '<i class="fas fa-crosshairs mr-2"></i>Locate Me';
+                btn.disabled = false;
+            }
+        );
+    } else {
+        alert('Geolocation is not supported by this browser.');
+        btn.innerHTML = '<i class="fas fa-crosshairs mr-2"></i>Locate Me';
+        btn.disabled = false;
+    }
+}
+
+// Calculate distances from user to jobs
+function calculateDistances() {
+    if (!userLocation) return;
+    
+    jobMarkers.forEach((marker, index) => {
+        const job = jobData[index];
+        const distance = calculateDistance(
+            userLocation.lat, userLocation.lng,
+            job.latitude, job.longitude
+        );
+        
+        // Update popup with distance
+        marker.setPopupContent(`
+            <div class="p-2">
+                <h3 class="font-semibold text-gray-800 mb-2">${job.title}</h3>
+                <p class="text-sm text-gray-600 mb-1">${job.location}</p>
+                <p class="text-xs text-blue-600 font-medium mb-2">${distance.toFixed(1)} miles away</p>
+                <p class="text-xs text-gray-500 mb-2">${job.description}</p>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-gray-500">${job.created_at}</span>
+                    <button onclick="showJobDetails(${job.id})" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                        View Details
+                    </button>
+                </div>
+            </div>
+        `);
+    });
+}
+
+// Calculate distance between two points (Haversine formula)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 3959; // Earth's radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+// Close job info panel
+function closeJobInfo() {
+    document.getElementById('jobInfoPanel').classList.add('hidden');
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    
+    document.getElementById('locateMeBtn').addEventListener('click', locateUser);
+    document.getElementById('closeJobInfo').addEventListener('click', closeJobInfo);
+});
+</script>
+
+<style>
+.custom-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+#map {
+    z-index: 1;
+}
+
+.leaflet-popup-content {
+    margin: 0 !important;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 8px !important;
+}
+</style>
+{% endblock %}
