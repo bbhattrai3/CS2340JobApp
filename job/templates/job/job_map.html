@@ -13,9 +13,9 @@
                     <button id="locateMeBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
                         <i class="fas fa-crosshairs mr-2"></i>Locate Me
                     </button>
-                    <a href="{% url 'job:job_search' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                    <button id="toggleListViewBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200">
                         <i class="fas fa-list mr-2"></i>List View
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -26,13 +26,33 @@
         <div id="map" class="w-full h-full"></div>
         
         <!-- Loading indicator -->
-        <div id="loadingIndicator" class="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-3 flex items-center space-x-2">
+        <div id="loadingIndicator" class="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-3 flex items-center space-x-2 z-10">
             <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
             <span class="text-sm text-gray-600">Loading map...</span>
         </div>
 
+        <!-- Jobs List Side Panel -->
+        <div id="jobsListPanel" class="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-30 overflow-hidden flex flex-col">
+            <div class="bg-gray-800 text-white p-4 flex justify-between items-center">
+                <h2 class="text-lg font-semibold">Jobs List</h2>
+                <button id="closeListPanelBtn" class="text-white hover:text-gray-300">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4">
+                <div id="jobsListContent" class="space-y-3">
+                    <!-- Jobs will be populated here -->
+                </div>
+                <div id="noJobsMessage" class="text-center text-gray-500 py-8 hidden">
+                    <i class="fas fa-map-marker-alt text-4xl mb-4 text-gray-300"></i>
+                    <p>No jobs found in the selected radius.</p>
+                    <p class="text-sm mt-2">Try adjusting the distance filter.</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Job info panel -->
-        <div id="jobInfoPanel" class="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm hidden">
+        <div id="jobInfoPanel" class="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm hidden z-20">
             <div class="flex justify-between items-start mb-3">
                 <h3 id="jobTitle" class="text-lg font-semibold text-gray-800"></h3>
                 <button id="closeJobInfo" class="text-gray-400 hover:text-gray-600">
@@ -46,6 +66,43 @@
                 <a id="applyJobBtn" href="#" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg transition duration-200 block">
                     Apply Now
                 </a>
+            </div>
+        </div>
+
+        <!-- Distance Filter Panel -->
+        <div id="distanceFilterPanel" class="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 hidden z-20">
+            <h4 class="text-sm font-semibold text-gray-800 mb-3">Filter by Distance</h4>
+            <div class="space-y-3">
+                <div>
+                    <label for="distanceSlider" class="block text-xs text-gray-600 mb-2">
+                        Maximum Distance: <span id="distanceValue" class="font-semibold text-blue-600">50</span> miles
+                    </label>
+                    <input 
+                        type="range" 
+                        id="distanceSlider" 
+                        min="1" 
+                        max="100" 
+                        value="50" 
+                        step="1"
+                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    >
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>1 mi</span>
+                        <span>50 mi</span>
+                        <span>100 mi</span>
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-gray-200">
+                    <div class="text-xs text-gray-600">
+                        <span id="visibleJobsCount" class="font-semibold text-blue-600">0</span> jobs within range
+                    </div>
+                    <button 
+                        id="clearFilterBtn" 
+                        class="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                    >
+                        Clear Filter
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -79,6 +136,9 @@ let map;
 let userLocationMarker;
 let jobMarkers = [];
 let userLocation = null;
+let jobDistances = {}; // Store distance for each job ID
+let maxDistance = 50; // Default max distance in miles
+let isFilterActive = false;
 
 // Initialize map
 function initMap() {
@@ -128,6 +188,12 @@ function addJobMarkers() {
         
         jobMarkers.push(marker);
     });
+    
+    // Initialize visible jobs count (all jobs visible initially)
+    const countElement = document.getElementById('visibleJobsCount');
+    if (countElement) {
+        countElement.textContent = jobMarkers.length;
+    }
 }
 
 // Show job details in side panel
@@ -138,8 +204,13 @@ function showJobDetails(jobId) {
     document.getElementById('jobTitle').textContent = job.title;
     document.getElementById('applyJobBtn').href = job.apply_url;
     
+    // Get distance if available
+    const distance = jobDistances[job.id];
+    const distanceText = distance !== undefined ? `<div><strong>Distance:</strong> ${distance.toFixed(1)} miles away</div>` : '';
+    
     const jobDetails = document.getElementById('jobDetails');
     jobDetails.innerHTML = `
+        ${distanceText}
         <div><strong>Location:</strong> ${job.location}</div>
         <div><strong>Posted:</strong> ${job.created_at}</div>
         <div><strong>Recruiter:</strong> ${job.recruiter}</div>
@@ -194,6 +265,13 @@ function locateUser() {
                 // Calculate distances to jobs
                 calculateDistances();
                 
+                // Reset filter to default when location is obtained
+                maxDistance = 50;
+                if (document.getElementById('distanceSlider')) {
+                    document.getElementById('distanceSlider').value = 50;
+                    document.getElementById('distanceValue').textContent = '50';
+                }
+                
                 btn.innerHTML = '<i class="fas fa-crosshairs mr-2"></i>Locate Me';
                 btn.disabled = false;
             },
@@ -222,6 +300,9 @@ function calculateDistances() {
             job.latitude, job.longitude
         );
         
+        // Store distance for filtering
+        jobDistances[job.id] = distance;
+        
         // Update popup with distance
         marker.setPopupContent(`
             <div class="p-2">
@@ -238,6 +319,10 @@ function calculateDistances() {
             </div>
         `);
     });
+    
+    // Show distance filter panel and apply initial filter
+    showDistanceFilter();
+    applyDistanceFilter();
 }
 
 // Calculate distance between two points (Haversine formula)
@@ -257,12 +342,255 @@ function closeJobInfo() {
     document.getElementById('jobInfoPanel').classList.add('hidden');
 }
 
+// Show distance filter panel
+function showDistanceFilter() {
+    const panel = document.getElementById('distanceFilterPanel');
+    if (panel && userLocation) {
+        panel.classList.remove('hidden');
+    }
+}
+
+// Apply distance filter to job markers
+function applyDistanceFilter() {
+    let visibleCount = 0;
+    const visibleJobs = [];
+    
+    // If user location is available, filter by distance
+    if (userLocation && Object.keys(jobDistances).length > 0) {
+        jobMarkers.forEach((marker, index) => {
+            const job = jobData[index];
+            const distance = jobDistances[job.id];
+            
+            if (distance !== undefined && distance <= maxDistance) {
+                // Show marker
+                if (!map.hasLayer(marker)) {
+                    marker.addTo(map);
+                }
+                visibleCount++;
+                visibleJobs.push({ job, distance, marker });
+            } else {
+                // Hide marker
+                if (map.hasLayer(marker)) {
+                    map.removeLayer(marker);
+                }
+            }
+        });
+    } else {
+        // If no location, show all jobs
+        jobMarkers.forEach((marker, index) => {
+            const job = jobData[index];
+            if (!map.hasLayer(marker)) {
+                marker.addTo(map);
+            }
+            visibleCount++;
+            visibleJobs.push({ job, distance: null, marker });
+        });
+    }
+    
+    // Update visible jobs count
+    const countElement = document.getElementById('visibleJobsCount');
+    if (countElement) {
+        countElement.textContent = visibleCount;
+    }
+    
+    // Update jobs list panel
+    updateJobsList(visibleJobs);
+    
+    isFilterActive = true;
+}
+
+// Update the jobs list panel with visible jobs
+function updateJobsList(visibleJobs) {
+    const listContent = document.getElementById('jobsListContent');
+    const noJobsMessage = document.getElementById('noJobsMessage');
+    
+    if (!listContent) return;
+    
+    if (visibleJobs.length === 0) {
+        listContent.innerHTML = '';
+        if (noJobsMessage) {
+            noJobsMessage.classList.remove('hidden');
+        }
+        return;
+    }
+    
+    if (noJobsMessage) {
+        noJobsMessage.classList.add('hidden');
+    }
+    
+    // Sort by distance if available
+    if (userLocation && Object.keys(jobDistances).length > 0) {
+        visibleJobs.sort((a, b) => {
+            if (a.distance === null) return 1;
+            if (b.distance === null) return -1;
+            return a.distance - b.distance;
+        });
+    }
+    
+    // Generate HTML for each job
+    listContent.innerHTML = visibleJobs.map(({ job, distance }) => {
+        const distanceText = distance !== null ? `<span class="text-blue-600 font-medium">${distance.toFixed(1)} mi</span>` : '';
+        const salaryText = job.salary_min || job.salary_max 
+            ? `<div class="text-xs text-gray-500 mt-1">$${job.salary_min ? job.salary_min.toLocaleString() : 'N/A'} - $${job.salary_max ? job.salary_max.toLocaleString() : 'N/A'}</div>`
+            : '';
+        
+        return `
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer job-list-item" data-job-id="${job.id}">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-semibold text-gray-800 text-sm">${job.title}</h3>
+                    ${distanceText}
+                </div>
+                <p class="text-xs text-gray-600 mb-1">
+                    <i class="fas fa-map-marker-alt mr-1"></i>${job.location || 'Location not specified'}
+                </p>
+                ${salaryText}
+                <p class="text-xs text-gray-500 mt-2 line-clamp-2">${job.description}</p>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-xs text-gray-400">${job.created_at}</span>
+                    <button onclick="focusJobOnMap(${job.id})" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                        View on Map
+                    </button>
+                </div>
+                <a href="${job.apply_url}" class="block mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-1.5 px-3 rounded text-xs transition duration-200">
+                    Apply Now
+                </a>
+            </div>
+        `;
+    }).join('');
+    
+    // Add click handlers to job list items
+    document.querySelectorAll('.job-list-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            // Don't trigger if clicking on a button or link
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button') || e.target.closest('a')) {
+                return;
+            }
+            const jobId = parseInt(this.dataset.jobId);
+            showJobDetails(jobId);
+            // Close list panel on mobile or if desired
+            if (window.innerWidth < 768) {
+                toggleJobsList();
+            }
+        });
+    });
+}
+
+// Focus on a job on the map
+function focusJobOnMap(jobId) {
+    const job = jobData.find(j => j.id === jobId);
+    if (!job) return;
+    
+    // Find the marker and open its popup
+    const markerIndex = jobData.findIndex(j => j.id === jobId);
+    if (markerIndex !== -1 && jobMarkers[markerIndex]) {
+        map.setView([job.latitude, job.longitude], 15);
+        jobMarkers[markerIndex].openPopup();
+    }
+    
+    // Also show job details
+    showJobDetails(jobId);
+}
+
+// Toggle jobs list panel
+function toggleJobsList() {
+    const panel = document.getElementById('jobsListPanel');
+    if (!panel) return;
+    
+    if (panel.classList.contains('translate-x-full')) {
+        panel.classList.remove('translate-x-full');
+        // Update the list when opening
+        updateJobsListFromVisibleMarkers();
+    } else {
+        panel.classList.add('translate-x-full');
+    }
+}
+
+// Update jobs list from currently visible markers
+function updateJobsListFromVisibleMarkers() {
+    const visibleJobs = [];
+    
+    jobMarkers.forEach((marker, index) => {
+        if (map.hasLayer(marker)) {
+            const job = jobData[index];
+            const distance = jobDistances[job.id];
+            visibleJobs.push({ job, distance: distance !== undefined ? distance : null, marker });
+        }
+    });
+    
+    updateJobsList(visibleJobs);
+}
+
+// Clear distance filter
+function clearDistanceFilter() {
+    maxDistance = 100; // Set to max
+    document.getElementById('distanceSlider').value = 100;
+    document.getElementById('distanceValue').textContent = '100';
+    
+    // Show all markers
+    jobMarkers.forEach(marker => {
+        if (!map.hasLayer(marker)) {
+            marker.addTo(map);
+        }
+    });
+    
+    // Update count
+    const countElement = document.getElementById('visibleJobsCount');
+    if (countElement) {
+        countElement.textContent = jobMarkers.length;
+    }
+    
+    // Update jobs list
+    updateJobsListFromVisibleMarkers();
+    
+    isFilterActive = false;
+}
+
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     initMap();
     
     document.getElementById('locateMeBtn').addEventListener('click', locateUser);
     document.getElementById('closeJobInfo').addEventListener('click', closeJobInfo);
+    
+    // List view toggle
+    const toggleListViewBtn = document.getElementById('toggleListViewBtn');
+    const closeListPanelBtn = document.getElementById('closeListPanelBtn');
+    
+    if (toggleListViewBtn) {
+        toggleListViewBtn.addEventListener('click', function() {
+            const panel = document.getElementById('jobsListPanel');
+            const isOpening = panel.classList.contains('translate-x-full');
+            toggleJobsList();
+            // Update list when opening
+            if (isOpening) {
+                updateJobsListFromVisibleMarkers();
+            }
+        });
+    }
+    
+    if (closeListPanelBtn) {
+        closeListPanelBtn.addEventListener('click', toggleJobsList);
+    }
+    
+    // Distance filter slider
+    const distanceSlider = document.getElementById('distanceSlider');
+    const distanceValue = document.getElementById('distanceValue');
+    const clearFilterBtn = document.getElementById('clearFilterBtn');
+    
+    if (distanceSlider) {
+        distanceSlider.addEventListener('input', function(e) {
+            maxDistance = parseInt(e.target.value);
+            distanceValue.textContent = maxDistance;
+            applyDistanceFilter();
+        });
+    }
+    
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', clearDistanceFilter);
+    }
+    
+    // Initial jobs list update (show all jobs initially)
+    updateJobsListFromVisibleMarkers();
 });
 </script>
 
@@ -282,6 +610,60 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .leaflet-popup-content-wrapper {
     border-radius: 8px !important;
+}
+
+/* Distance slider styling */
+#distanceSlider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #e5e7eb;
+    outline: none;
+    border-radius: 8px;
+}
+
+#distanceSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #2563eb;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+#distanceSlider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #2563eb;
+    cursor: pointer;
+    border-radius: 50%;
+    border: none;
+}
+
+/* Jobs list panel styling */
+#jobsListPanel {
+    max-width: 100%;
+}
+
+@media (max-width: 640px) {
+    #jobsListPanel {
+        width: 100%;
+    }
+}
+
+.job-list-item {
+    transition: all 0.2s ease;
+}
+
+.job-list-item:hover {
+    border-color: #3b82f6;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 </style>
 {% endblock %}
