@@ -1,0 +1,17 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+  {{ block.super }}
+  <div style="margin-top: 1.5em;">
+    <a href="/admin/export/all-data/" class="button" style="
+        background: var(--button-bg, #417690);
+        color: white;
+        padding: 10px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 600;
+    ">
+        Export All Data (CSV)
+    </a>
+  </div>
+{% endblock %}
