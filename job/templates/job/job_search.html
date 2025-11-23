@@ -37,6 +37,27 @@
       <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">Search</button>
     </div>
   </form>
+  {% if recommended_jobs %}
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Recommended For You</h2>
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+      {% for job in recommended_jobs %}
+        <div class="bg-white rounded-lg shadow-md flex flex-col justify-between h-full transition">
+          <div class="p-5">
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">{{ job.title }}</h2>
+            <p class="text-gray-600 mb-3 line-clamp-3">{{ job.description|truncatewords:20 }}</p>
+            <p class="text-xs text-gray-500 mb-2">Skills: {{ job.skills }}</p>
+            <p class="text-xs text-gray-500 mb-2">Salary: {{ job.salary_min|default:'N/A' }} - {{ job.salary_max|default:'N/A' }}</p>
+            {% if user.role == 'seeker' %}
+              <a href="{% url 'job:apply_job' job.pk %}"
+                class="inline-block mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">
+                View
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 
   <h2 class="text-2xl font-bold text-gray-800 mb-4">Avaliable Jobs</h2>
   {% if jobs %}
