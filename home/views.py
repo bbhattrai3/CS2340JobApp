@@ -8,6 +8,7 @@ def index(request):
     if getattr(request.user, "role", None) == "seeker":
         from job.forms import JobSearchForm
         from job.models import Job
+        from seeker.models import JobSeekerProfile
 
         form = JobSearchForm(request.GET or None)
         jobs = Job.objects.all()
@@ -31,7 +32,26 @@ def index(request):
             if data.get("visa_sponsorship"):
                 jobs = jobs.filter(visa_sponsorship=True)
 
-        return render(request, "job/job_search.html", {"form": form, "jobs": jobs, "active_nav": "jobs"})
+        recommended_jobs = []
+        profile = JobSeekerProfile.objects.filter(user=request.user).first()
+        if profile and profile.skills:
+            seeker_skills = set([
+                s.strip().lower() for s in profile.skills.strip().split(",") if s.strip()
+            ])
+            job_scores = []
+            
+            for job in Job.objects.all():
+                if not job.skills:
+                    continue
+                job_skills = set([s.strip().lower() for s in job.skills.strip().split(",") if s.strip()])
+                overlap = seeker_skills & job_skills
+                if overlap:
+                    job_scores.append((job, len(overlap)))
+
+            job_scores.sort(key=lambda x: x[1], reverse=True)
+            recommended_jobs = [job for job, score in job_scores[:10]]
+
+        return render(request, "job/job_search.html", {"form": form, "jobs": jobs, "recommended_jobs": recommended_jobs, "active_nav": "jobs"})
 
     if getattr(request.user, "role", None) == "recruiter":
         from seeker.models import JobSeekerProfile
