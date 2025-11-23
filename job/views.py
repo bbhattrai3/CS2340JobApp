@@ -170,6 +170,52 @@ def job_applicants(request, pk):
             "total_applicants": sum(stage['count'] for stage in status_data),
         },
     )
+@role_required("recruiter")
+def job_applicants_map(request, pk):
+    """
+    Map view for recruiters to see clusters of applicants by their reported location.
+    This view gathers applicant usernames, emails and their JobSeekerProfile.location (if any)
+    and passes them to the template which will perform client-side geocoding & clustering.
+    """
+    job = get_object_or_404(Job, pk=pk, recruiter=request.user)
+
+    # Collect applicants for this job
+    applications = (
+        Application.objects
+        .filter(job=job)
+        .select_related('applicant')
+        .order_by('-created_at')
+    )
+
+    applicants = []
+    for app in applications:
+        user = app.applicant
+        # Try to get profile location if exists
+        location = None
+        try:
+            # JobSeekerProfile is OneToOne, attribute access may raise
+            location = getattr(user, 'jobseekerprofile', None)
+            if location:
+                location = location.location
+        except Exception:
+            location = None
+
+        applicants.append({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'location': location or '',
+            'applied_at': app.created_at.strftime('%B %d, %Y'),
+        })
+
+    context = {
+        'job': job,
+        'applicants_json': json.dumps(applicants),
+        'total_applicants': applications.count(),
+        'active_nav': 'jobs',
+    }
+
+    return render(request, 'job/applicants_map.html', context)
 
 @role_required("recruiter")
 @require_POST

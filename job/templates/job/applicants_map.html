@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h1 class="text-2xl font-bold">Applicants Map — {{ job.title }}</h1>
+      <p class="text-sm text-gray-600">Total applicants: {{ total_applicants }}</p>
+    </div>
+    <div>
+      <a href="{% url 'job:job_applicants' job.id %}" class="text-sm text-blue-600 hover:underline">Back to Applicants</a>
+    </div>
+  </div>
+
+  <div id="map" style="height: calc(100vh - 180px);" class="rounded-lg shadow"></div>
+  <div id="unknownLocations" class="mt-4 text-sm text-gray-600"></div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- MarkerCluster JS -->
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script>
+const applicants = {{ applicants_json|safe }};
+
+// Group applicants by reported location string
+const locationGroups = {};
+const unknownApplicants = [];
+applicants.forEach(a => {
+  const loc = (a.location || '').trim();
+  if (!loc) {
+    unknownApplicants.push(a);
+    return;
+  }
+  if (!locationGroups[loc]) locationGroups[loc] = [];
+  locationGroups[loc].push(a);
+});
+
+// Initialize map
+const map = L.map('map').setView([39.8283, -98.5795], 4); // center US
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+// Create marker cluster group
+const markers = L.markerClusterGroup();
+map.addLayer(markers);
+
+// Simple localStorage cache key prefix
+const CACHE_KEY_PREFIX = 'nominatim_cache_v1_';
+
+// Helper: geocode a location string using Nominatim (returns {lat, lon} or null)
+async function geocodeLocation(q) {
+  const cacheKey = CACHE_KEY_PREFIX + q;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return JSON.parse(cached);
+  } catch (e) {
+    // ignore storage errors
+  }
+
+  // Nominatim public service: please be respectful of usage limits.
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`;
+  try {
+    const resp = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    if (!data || data.length === 0) return null;
+    const res = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), display_name: data[0].display_name };
+    try { localStorage.setItem(cacheKey, JSON.stringify(res)); } catch (e) {}
+    return res;
+  } catch (e) {
+    console.error('Geocode error for', q, e);
+    return null;
+  }
+}
+
+// Create markers for each unique location (with geocoding + caching)
+async function populateMarkers() {
+  const entries = Object.entries(locationGroups);
+  if (entries.length === 0) {
+    document.getElementById('unknownLocations').textContent = 'No applicants provided a location.';
+    return;
+  }
+
+  // For UX, progressively add markers
+  for (const [loc, apps] of entries) {
+    const geo = await geocodeLocation(loc);
+    if (!geo) {
+      // Couldn't geocode; move these to unknowns for listing
+      apps.forEach(a => unknownApplicants.push(a));
+      continue;
+    }
+
+    const lat = geo.lat;
+    const lon = geo.lon;
+
+    // Build popup HTML listing grouped applicants
+    const shortName = geo.display_name || loc;
+    const popupParts = [`<div style="min-width:200px"><strong>${shortName}</strong><br/><em>${loc}</em><hr/>`];
+    apps.forEach(app => {
+      popupParts.push(`<div style="margin-bottom:6px"><strong>${app.username}</strong> <br/><small>${app.email} • ${app.applied_at}</small></div>`);
+    });
+    popupParts.push('</div>');
+
+    const marker = L.marker([lat, lon]);
+    marker.bindPopup(popupParts.join(''));
+    markers.addLayer(marker);
+  }
+
+  // Fit bounds if we have markers
+  if (markers.getLayers().length > 0) {
+    map.fitBounds(markers.getBounds().pad(0.2));
+  }
+
+  // Show unknown applicants list
+  renderUnknowns();
+}
+
+function renderUnknowns() {
+  const el = document.getElementById('unknownLocations');
+  if (unknownApplicants.length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+  const html = ['<div class="p-3 bg-yellow-50 rounded border border-yellow-100">', '<strong>Applicants without a geocodable location:</strong>', '<ul class="mt-2">'];
+  unknownApplicants.forEach(a => {
+    html.push(`<li>${a.username} (${a.email}) — <em>${a.location || 'No location provided'}</em></li>`);
+  });
+  html.push('</ul></div>');
+  el.innerHTML = html.join('');
+}
+
+// Kick off
+populateMarkers();
+</script>
+
+<style>
+/* keep map above other page elements */
+#map { z-index: 1; }
+</style>
+
+{% endblock %}
