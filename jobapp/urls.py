@@ -25,4 +25,5 @@ urlpatterns = [
     path("recruiter/", include('recruiter.urls')),
     path("jobs/", include("job.urls")),
     path("messaging/", include('messaging.urls')),
+    path("admin-panel/", include('admin_panel.urls')),
 ]
