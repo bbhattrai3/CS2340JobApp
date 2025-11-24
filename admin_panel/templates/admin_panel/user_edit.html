@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Edit {{ user_obj.username }}{% endblock %}
+{% block content %}
+<section class="bg-white pt-16 pb-8 antialiased dark:bg-gray-900 md:py-8 rounded-2xl shadow-sm mb-12">
+  <div class="mx-auto max-w-screen-lg px-4 2xl:px-0">
+    <div class="mb-6">
+      <a href="{% url 'admin_panel:user_list' %}" class="text-sm text-blue-600 hover:underline">← Back to users</a>
+    </div>
+
+    <div class="flex items-center space-x-4 mb-6">
+      <div>
+        <h2 class="text-2xl font-bold leading-none text-gray-900 dark:text-white">Edit user — {{ user_obj.username }}</h2>
+        <p class="text-gray-500">Update role and account status below.</p>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-sm">
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+              <p class="text-sm text-red-600">{{ form.username.errors }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <p class="text-sm text-red-600">{{ form.email.errors }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900">First name</label>
+            {{ form.first_name }}
+          </div>
+
+          <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900">Last name</label>
+            {{ form.last_name }}
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block mb-2 text-sm font-medium text-gray-900">Role</label>
+            {{ form.role }}
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-6">
+          <label class="inline-flex items-center space-x-2">
+            {{ form.is_active }}
+            <span class="text-sm text-gray-700">Active</span>
+          </label>
+          <label class="inline-flex items-center space-x-2">
+            {{ form.is_staff }}
+            <span class="text-sm text-gray-700">Staff</span>
+          </label>
+
+          {% if request.user.is_superuser %}
+            <label class="inline-flex items-center space-x-2">
+              {{ form.is_superuser }}
+              <span class="text-sm text-gray-700">Superuser</span>
+            </label>
+          {% else %}
+            <div class="text-sm text-gray-700">
+              Superuser: {% if user_obj.is_superuser %}<span class="font-medium text-green-600">Yes</span>{% else %}<span class="text-gray-500">No</span>{% endif %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <button type="submit" class="inline-flex justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-md hover:bg-blue-800">Save Changes</button>
+          <a href="{% url 'admin_panel:user_list' %}" class="inline-flex justify-center rounded-lg bg-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 shadow-md hover:bg-gray-300">Cancel</a>
+
+          {% if request.user.is_staff or request.user.is_superuser %}
+            {% if not user_obj.is_staff and not user_obj.is_superuser and user_obj.pk != request.user.pk %}
+              <a href="{% url 'admin_panel:user_delete' user_obj.pk %}" class="inline-flex justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:bg-red-700">Delete</a>
+            {% endif %}
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'home',
     'accounts',
+    'admin_panel',
     'seeker',
     'recruiter',
     'job',
